@@ -14,7 +14,7 @@ jobs:
         java-version: '13.x'
     - uses: subosito/flutter-action@v1
       with:
-        flutter-version: '1.14.6'
+        channel: 'beta'
     - run: flutter pub get
     - run: flutter test
     - run: flutter build apk --debug --split-per-abi
