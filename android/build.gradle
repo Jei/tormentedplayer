@@ -26,6 +26,10 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+ext {
+    flutterFFmpegPackage = 'audio-lts'
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
