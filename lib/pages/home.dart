@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
-import 'package:flutter_ffmpeg/log_level.dart';
+import 'package:just_audio/just_audio.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -8,18 +7,21 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  final FlutterFFmpeg _ffmpeg = new FlutterFFmpeg();
-  final FlutterFFmpegConfig _ffmpegConfig = new FlutterFFmpegConfig();
-  final String _serverURL = 'http://stream2.mpegradio.com:8070';
-  bool _isConnected = false;
-  String _currentTrack = 'Loading...';
+  final String _serverURL = 'http://stream2.mpegradio.com:8070/tormented.mp3';
+  AudioPlayer _player;
 
   @override
   void initState() {
-    _ffmpegConfig.enableLogCallback(this.logCallback);
-    _ffmpegConfig.setLogLevel(LogLevel.AV_LOG_TRACE);
-
     super.initState();
+
+    _player = AudioPlayer();
+    _player.setUrl(_serverURL);
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
 
   @override
@@ -29,51 +31,38 @@ class HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(_currentTrack),
-            FloatingActionButton(
-                child: Icon(_isConnected ? Icons.stop : Icons.play_arrow),
-                onPressed: () {
-                  if (_isConnected) {
-                    _ffmpeg.cancel().then((value) => setState(() {
-                          _isConnected = false;
-                        }));
-                  } else {
-                    setState(() {
-                      _isConnected = true;
-                    });
-                    _ffmpegConfig.registerNewFFmpegPipe().then((path) {
-                      print('New ffmpeg pipe at $path');
+            StreamBuilder<FullAudioPlaybackState>(
+                stream: _player.fullPlaybackStateStream,
+                builder: (context, snapshot) {
+                  final fullState = snapshot.data;
+                  final state = fullState?.state;
 
-                      _ffmpeg
-                          .execute(
-                              '-reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 2 -i $_serverURL -c:a copy -f mp3 pipe:1')
-                          .then((rc) =>
-                              print('FFmpeg process exited with rc $rc'))
-                          .whenComplete(() => setState(() {
-                                _isConnected = false;
-                              }));
-                    }).catchError((err) {
-                      setState(() {
-                        _isConnected = false;
-                      });
-                    });
+                  if (state == AudioPlaybackState.connecting ||
+                      state == AudioPlaybackState.none ||
+                      state == AudioPlaybackState.completed) {
+                    return CircularProgressIndicator();
+                  } else {
+                    bool isConnected = state == AudioPlaybackState.playing;
+                    return FloatingActionButton(
+                        child:
+                            Icon(isConnected ? Icons.stop : Icons.play_arrow),
+                        onPressed: () async {
+                          try {
+                            if (isConnected) {
+                              await _player.stop();
+                            } else {
+                              await _player.play();
+                            }
+                          } catch (err) {
+                            print(err);
+                            _player.stop();
+                          }
+                        });
                   }
-                })
+                }),
           ],
         ),
       ),
     );
-  }
-
-  void logCallback(int level, String message) {
-    RegExp _songMatcher = RegExp(r'Metadata update for StreamTitle: (.*)');
-    RegExpMatch match = _songMatcher.firstMatch(message);
-
-    if (match != null) {
-      setState(() {
-        _currentTrack = match.group(1);
-      });
-    }
-
   }
 }
