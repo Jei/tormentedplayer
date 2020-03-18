@@ -77,7 +77,7 @@ class HomePageState extends State<HomePage> {
                           height: 24,
                           child: CircularProgressIndicator(
                             valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.black),
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ))
                       : Icon(isConnected ? Icons.stop : Icons.play_arrow),
                   onPressed: () async {
