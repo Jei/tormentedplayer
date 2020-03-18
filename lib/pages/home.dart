@@ -15,6 +15,9 @@ class HomePageState extends State<HomePage> {
     super.initState();
 
     _player = AudioPlayer();
+    _player.playbackEventStream.listen((event) {
+      debugPrint(event.toString());
+    });
     _player.setUrl(_serverURL);
   }
 
@@ -31,6 +34,15 @@ class HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            StreamBuilder<FullAudioPlaybackState>(
+              stream: _player.fullPlaybackStateStream,
+              builder: (context, snapshot) {
+                final state = snapshot.data;
+                final metadata = snapshot.data.icyMetadata;
+
+                return Text(metadata != null && metadata.info.title != null ? metadata.info.title : "UNKNOWN");
+              }
+            ),
             StreamBuilder<FullAudioPlaybackState>(
                 stream: _player.fullPlaybackStateStream,
                 builder: (context, snapshot) {
