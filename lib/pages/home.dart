@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
+import 'package:tormentedplayer/widgets/track_info.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -33,66 +34,91 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(
-              child: Align(
-                  alignment: Alignment.center,
-                  child: TrackCover('https://cataas.com/c')),
-            ),
-            StreamBuilder<IcyMetadata>(
-                stream: _player.icyMetadataStream,
-                builder: (context, snapshot) {
-                  final String title = snapshot.data?.info?.title;
-                  final List<String> parsedTitle = parseTitle(title);
-
-                  return Column(
-                    children: <Widget>[
-                      Text(
-                        parsedTitle[1],
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(parsedTitle[0]),
-                    ],
-                  );
-                }),
-            StreamBuilder<AudioPlaybackState>(
-                stream: _player.playbackStateStream,
-                builder: (context, snapshot) {
-                  final AudioPlaybackState state = snapshot.data;
-                  final bool isLoading =
-                      state == AudioPlaybackState.connecting ||
-                          state == AudioPlaybackState.none ||
-                          state == AudioPlaybackState.completed;
-                  final bool isConnected = state == AudioPlaybackState.playing;
-
-                  return FloatingActionButton(
-                    child: isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ))
-                        : Icon(isConnected ? Icons.stop : Icons.play_arrow),
-                    onPressed: () async {
-                      try {
-                        isConnected
-                            ? await _player.stop()
-                            : await _player.play();
-                      } catch (err) {
-                        print(err);
-                        _player.stop();
-                      }
-                    },
-                  );
-                }),
-          ],
+        child: OrientationBuilder(
+          builder: (BuildContext context, Orientation orientation) {
+            if (orientation == Orientation.portrait) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    child: buildCover(),
+                  ),
+                  buildInfo(),
+                  buildControls(),
+                ],
+              );
+            } else {
+              return Row(
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  buildCover(),
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        buildInfo(),
+                        buildControls(),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
+  }
+
+  Widget buildCover() {
+    return Align(
+        alignment: Alignment.center, child: TrackCover('https://cataas.com/c'));
+  }
+
+  Widget buildInfo() {
+    return StreamBuilder<IcyMetadata>(
+        stream: _player.icyMetadataStream,
+        builder: (context, snapshot) {
+          final String title = snapshot.data?.info?.title;
+          final List<String> parsedTitle = parseTitle(title);
+
+          return TrackInfo(
+            title: parsedTitle[1],
+            artist: parsedTitle[0],
+          );
+        });
+  }
+
+  Widget buildControls() {
+    return StreamBuilder<AudioPlaybackState>(
+        stream: _player.playbackStateStream,
+        builder: (context, snapshot) {
+          final AudioPlaybackState state = snapshot.data;
+          final bool isLoading = state == AudioPlaybackState.connecting ||
+              state == AudioPlaybackState.none ||
+              state == AudioPlaybackState.completed;
+          final bool isConnected = state == AudioPlaybackState.playing;
+
+          return FloatingActionButton(
+            child: isLoading
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ))
+                : Icon(isConnected ? Icons.stop : Icons.play_arrow),
+            onPressed: () async {
+              try {
+                isConnected ? await _player.stop() : await _player.play();
+              } catch (err) {
+                print(err);
+                _player.stop();
+              }
+            },
+          );
+        });
   }
 
   static List<String> parseTitle(String title) {
