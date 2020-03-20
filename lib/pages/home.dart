@@ -44,6 +44,7 @@ class HomePageState extends State<HomePage> {
                     child: buildCover(),
                   ),
                   buildInfo(),
+                  SizedBox(height: 16.0),
                   buildControls(),
                 ],
               );
@@ -58,6 +59,7 @@ class HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         buildInfo(),
+                        SizedBox(height: 16.0),
                         buildControls(),
                       ],
                     ),
@@ -73,7 +75,12 @@ class HomePageState extends State<HomePage> {
 
   Widget buildCover() {
     return Align(
-        alignment: Alignment.center, child: TrackCover('https://cataas.com/c'));
+        alignment: Alignment.center,
+        child: Padding(
+          padding: EdgeInsets.all(48.0),
+          child: TrackCover('https://cataas.com/c'),
+        ),
+    );
   }
 
   Widget buildInfo() {
