@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class TrackInfo extends StatelessWidget {
@@ -14,18 +15,25 @@ class TrackInfo extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headline6,
-            maxLines: 1,
+          Container(
+            alignment: Alignment.center,
+            height: 48.0,
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.headline6,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
           ),
-          SizedBox(
-            height: 8.0,
-          ),
-          Text(
-            artist,
-            style: Theme.of(context).textTheme.subtitle1,
-            maxLines: 1,
+          Container(
+            alignment: Alignment.center,
+            height: 48.0,
+            child: Text(
+              artist,
+              style: Theme.of(context).textTheme.subtitle1,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
           ),
         ],
       ),

@@ -33,24 +33,23 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 16.0),
+        padding: const EdgeInsets.all(32.0),
         child: OrientationBuilder(
           builder: (BuildContext context, Orientation orientation) {
             if (orientation == Orientation.portrait) {
               return Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  Expanded(
-                    child: buildCover(),
-                  ),
+                  buildCover(),
                   buildInfo(),
-                  SizedBox(height: 16.0),
                   buildControls(),
                 ],
               );
             } else {
               return Row(
                 mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   buildCover(),
                   Expanded(
@@ -59,7 +58,7 @@ class HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         buildInfo(),
-                        SizedBox(height: 16.0),
+                        SizedBox(height: 32.0),
                         buildControls(),
                       ],
                     ),
@@ -77,7 +76,7 @@ class HomePageState extends State<HomePage> {
     return Align(
         alignment: Alignment.center,
         child: Padding(
-          padding: EdgeInsets.all(48.0),
+          padding: EdgeInsets.symmetric(horizontal: 56.0),
           child: TrackCover('https://cataas.com/c'),
         ),
     );
