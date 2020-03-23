@@ -19,38 +19,34 @@ class LastFM {
     Uri uri = Uri.https(
         '${this.config.host}', '/${this.config.apiVersion}/', getParams);
 
-    print(uri.toString());
-
     return get(uri, headers: {
       HttpHeaders.userAgentHeader: this.config.userAgent,
     });
   }
 
-  Future<Map<String, dynamic>> searchTrack(String title, String artist) async {
-    Response response = await _get({
-      'method': 'track.search',
-      'track': title,
-      'artist': artist,
-      'limit': '1',
-    });
+  Future<Track> getTrackInfo(
+      {String track, String artist, String mbid}) async {
+    Response response = mbid != null
+        ? await _get({
+            'method': 'track.getInfo',
+            'mbid': mbid,
+          })
+        : await _get({
+            'method': 'track.getInfo',
+            'track': track,
+            'artist': artist,
+          });
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Could not search track: ${response.body}');
-    }
-  }
+      Map<String, dynamic> json = await jsonDecode(response.body);
+      
+      if (json['track'] == null) {
+        throw Exception('Could not get track info: missing track from response body');
+      }
 
-  Future<Map<String, dynamic>> getTrackInfo(String mbid) async {
-    Response response = await _get({
-      'method': 'track.getInfo',
-      'mbid': mbid,
-    });
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return Track.fromJson(json['track']);
     } else {
-      throw Exception('Could not search track: ${response.body}');
+      throw Exception('Could not get track info: ${response.body}');
     }
   }
 }
@@ -68,4 +64,87 @@ class LastFMConfig {
     this.apiVersion = '2.0',
     this.apiKey,
   });
+}
+
+class Album {
+  String artist;
+  String title;
+  String mbid;
+  String url;
+  Image image;
+
+  Album({this.artist, this.title, this.mbid, this.url, this.image});
+
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return Album(
+      artist: json['artist'],
+      title: json['title'],
+      mbid: json['mbid'],
+      url: json['url'],
+      image: Image.fromJson(json['image']),
+    );
+  }
+}
+
+class Artist {
+  String name;
+  String mbid;
+  String url;
+
+  Artist({this.name, this.mbid, this.url});
+
+  factory Artist.fromJson(Map<String, dynamic> json) {
+    return Artist(
+      name: json['name'],
+      mbid: json['mbid'],
+      url: json['url'],
+    );
+  }
+}
+
+class Image {
+  String small;
+  String medium;
+  String large;
+  String extraLarge;
+
+  Image({this.small, this.medium, this.large, this.extraLarge});
+
+  factory Image.fromJson(List json) {
+    Map<String, String> urls = {};
+
+    for (Map<String, dynamic> img in json) {
+      urls[img['size']] = img['#text'];
+    }
+
+    return Image(
+      small: urls['small'],
+      medium: urls['medium'],
+      large: urls['large'],
+      extraLarge: urls['extraLarge'],
+    );
+  }
+}
+
+class Track {
+  String name;
+  Artist artist;
+  String url;
+  int duration;
+  Album album;
+  String mbid;
+
+  Track(
+      {this.name, this.artist, this.url, this.duration, this.album, this.mbid});
+
+  factory Track.fromJson(Map<String, dynamic> json) {
+    return Track(
+      name: json['name'],
+      artist: Artist.fromJson(json['artist']),
+      url: json['url'],
+      duration: int.tryParse(json['duration']),
+      album: Album.fromJson(json['album']),
+      mbid: json['mbid'],
+    );
+  }
 }
