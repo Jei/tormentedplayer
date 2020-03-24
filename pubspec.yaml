@@ -28,6 +28,7 @@ dependencies:
       url: https://github.com/Jei/just_audio.git
       ref: icy-metadata
   http: ^0.12.0+4
+  transparent_image: ^1.0.0
 
 dev_dependencies:
   flutter_test:
