@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class TrackCover extends StatelessWidget {
   final String src;
@@ -7,13 +8,22 @@ class TrackCover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO add placeholder image
     return AspectRatio(
-      aspectRatio: 4/5,
+      aspectRatio: 1,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16.0),
-        child: Image.network(
-          src,
-          fit: BoxFit.cover,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.black45,
+          ),
+          child: src != null && src.isNotEmpty
+              ? FadeInImage.memoryNetwork(
+                  image: src,
+                  placeholder: kTransparentImage,
+                  fit: BoxFit.cover,
+                )
+              : null,
         ),
       ),
     );
