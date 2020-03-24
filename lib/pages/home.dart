@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tormentedplayer/util/lastfm.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
@@ -11,15 +12,15 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   final String _serverURL = 'http://stream2.mpegradio.com:8070/tormented.mp3';
   AudioPlayer _player;
+  LastFM _lastFM = LastFM(LastFMConfig(
+    apiKey: 'XXX',
+  ));
 
   @override
   void initState() {
     super.initState();
 
     _player = AudioPlayer();
-    _player.playbackEventStream.listen((event) {
-      debugPrint(event.toString());
-    });
     _player.setUrl(_serverURL);
   }
 
@@ -74,11 +75,32 @@ class HomePageState extends State<HomePage> {
 
   Widget buildCover() {
     return Align(
-        alignment: Alignment.center,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 56.0),
-          child: TrackCover('https://cataas.com/c'),
-        ),
+      alignment: Alignment.center,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 40.0),
+        child: StreamBuilder<IcyMetadata>(
+            stream: _player.icyMetadataStream,
+            builder: (context, snapshot) {
+              final String title = snapshot.data?.info?.title;
+              final List<String> parsedTitle = parseTitle(title);
+              final track = parsedTitle[1];
+              final artist = parsedTitle[0];
+
+              if (track.isNotEmpty && artist.isNotEmpty) {
+                return FutureBuilder(
+                  future: _lastFM.getTrackInfo(track: track, artist: artist),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      print(snapshot.error);
+                    }
+                    return TrackCover(snapshot.data?.album?.image?.extraLarge);
+                  },
+                );
+              } else {
+                return TrackCover(null);
+              }
+            }),
+      ),
     );
   }
 
@@ -88,10 +110,12 @@ class HomePageState extends State<HomePage> {
         builder: (context, snapshot) {
           final String title = snapshot.data?.info?.title;
           final List<String> parsedTitle = parseTitle(title);
+          final track = parsedTitle[1];
+          final artist = parsedTitle[0];
 
           return TrackInfo(
-            title: parsedTitle[1],
-            artist: parsedTitle[0],
+            title: track ?? '-',
+            artist: artist ?? '-',
           );
         });
   }
@@ -128,14 +152,14 @@ class HomePageState extends State<HomePage> {
   }
 
   static List<String> parseTitle(String title) {
-    if (title == null) return ['-', '-'];
+    if (title == null) return ['', ''];
     final RegExp matcher = RegExp(r'^(.*) - (.*)$');
     final match = matcher.firstMatch(title);
 
-    if (match == null) return ['-', '-'];
+    if (match == null) return ['', ''];
 
-    final song = match.group(1) ?? '-';
-    final artist = match.group(2) ?? '-';
+    final song = match.group(1) ?? '';
+    final artist = match.group(2) ?? '';
 
     return [song, artist];
   }
