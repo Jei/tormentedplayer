@@ -24,8 +24,7 @@ class LastFM {
     });
   }
 
-  Future<Track> getTrackInfo(
-      {String track, String artist, String mbid}) async {
+  Future<Track> getTrackInfo({String track, String artist, String mbid}) async {
     Response response = mbid != null
         ? await _get({
             'method': 'track.getInfo',
@@ -39,9 +38,10 @@ class LastFM {
 
     if (response.statusCode == 200) {
       Map<String, dynamic> json = await jsonDecode(response.body);
-      
+
       if (json['track'] == null) {
-        throw Exception('Could not get track info: missing track from response body');
+        throw Exception(
+            'Could not get track info: missing track from response body');
       }
 
       return Track.fromJson(json['track']);
@@ -121,7 +121,7 @@ class Image {
       small: urls['small'],
       medium: urls['medium'],
       large: urls['large'],
-      extraLarge: urls['extraLarge'],
+      extraLarge: urls['extralarge'],
     );
   }
 }
