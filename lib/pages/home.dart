@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:tormentedplayer/util/lastfm.dart';
+import 'package:tormentedplayer/services/lastfm.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
