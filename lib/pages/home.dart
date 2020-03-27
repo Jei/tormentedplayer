@@ -1,5 +1,6 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:tormentedplayer/services/audio.dart';
 import 'package:tormentedplayer/services/lastfm.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
@@ -9,25 +10,63 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
-  final String _serverURL = 'http://stream2.mpegradio.com:8070/tormented.mp3';
-  AudioPlayer _player;
+class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   LastFM _lastFM = LastFM(LastFMConfig(
     apiKey: 'XXX',
   ));
+
+  void _connect() {
+    AudioService.connect();
+  }
+
+  void _disconnect() {
+    AudioService.disconnect();
+  }
 
   @override
   void initState() {
     super.initState();
 
-    _player = AudioPlayer();
-    _player.setUrl(_serverURL);
+    WidgetsBinding.instance.addObserver(this);
+
+    print('starting audioservice');
+    AudioService.start(
+      backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
+      androidNotificationChannelName: 'Tormented Player',
+      notificationColor: 0xFF2196f3,
+      androidNotificationIcon: 'drawable/ic_notification_radio',
+      enableQueue: false,
+    );
+    print('audioservice started');
+    _connect();
+    print('connected to audioservice');
   }
 
   @override
   void dispose() {
-    _player.dispose();
+    print('dispose');
+    _disconnect();
+
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('AppLifecycleState: $state');
+    switch (state) {
+      case AppLifecycleState.paused:
+        print('onpause');
+        _disconnect();
+        break;
+      case AppLifecycleState.resumed:
+        print('onresume');
+        _connect();
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -78,17 +117,16 @@ class HomePageState extends State<HomePage> {
       alignment: Alignment.center,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: StreamBuilder<IcyMetadata>(
-            stream: _player.icyMetadataStream,
+        child: StreamBuilder<MediaItem>(
+            stream: AudioService.currentMediaItemStream,
             builder: (context, snapshot) {
-              final String title = snapshot.data?.info?.title;
-              final List<String> parsedTitle = parseTitle(title);
-              final track = parsedTitle[1];
-              final artist = parsedTitle[0];
+              final String title = snapshot.data?.title ?? '';
+              final String artist = snapshot.data?.artist ?? '';
+              print('new media item: $title - $artist');
 
-              if (track.isNotEmpty && artist.isNotEmpty) {
+              if (title.isNotEmpty && artist.isNotEmpty) {
                 return FutureBuilder(
-                  future: _lastFM.getTrackInfo(track: track, artist: artist),
+                  future: _lastFM.getTrackInfo(track: title, artist: artist),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       print(snapshot.error);
@@ -105,30 +143,27 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget buildInfo() {
-    return StreamBuilder<IcyMetadata>(
-        stream: _player.icyMetadataStream,
+    return StreamBuilder<MediaItem>(
+        stream: AudioService.currentMediaItemStream,
         builder: (context, snapshot) {
-          final String title = snapshot.data?.info?.title;
-          final List<String> parsedTitle = parseTitle(title);
-          final track = parsedTitle[1];
-          final artist = parsedTitle[0];
-
           return TrackInfo(
-            title: track ?? '-',
-            artist: artist ?? '-',
+            title: snapshot?.data?.title ?? '-',
+            artist: snapshot?.data?.artist ?? '-',
           );
         });
   }
 
   Widget buildControls() {
-    return StreamBuilder<AudioPlaybackState>(
-        stream: _player.playbackStateStream,
+    return StreamBuilder<PlaybackState>(
+        stream: AudioService.playbackStateStream,
         builder: (context, snapshot) {
-          final AudioPlaybackState state = snapshot.data;
-          final bool isLoading = state == AudioPlaybackState.connecting ||
-              state == AudioPlaybackState.none ||
-              state == AudioPlaybackState.completed;
-          final bool isConnected = state == AudioPlaybackState.playing;
+          final BasicPlaybackState state =
+              snapshot.data?.basicState ?? BasicPlaybackState.none;
+          print('New playback state: ${snapshot.data?.basicState}');
+          final bool isLoading = state == null ||
+              state == BasicPlaybackState.none ||
+              state == BasicPlaybackState.connecting;
+          final bool isPlaying = state == BasicPlaybackState.playing;
 
           return FloatingActionButton(
             child: isLoading
@@ -138,29 +173,18 @@ class HomePageState extends State<HomePage> {
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ))
-                : Icon(isConnected ? Icons.stop : Icons.play_arrow),
+                : Icon(isPlaying ? Icons.pause : Icons.play_arrow),
             onPressed: () async {
               try {
-                isConnected ? await _player.stop() : await _player.play();
+                isPlaying
+                    ? await AudioService.pause()
+                    : await AudioService.play();
               } catch (err) {
                 print(err);
-                _player.stop();
+                AudioService.pause();
               }
             },
           );
         });
-  }
-
-  static List<String> parseTitle(String title) {
-    if (title == null) return ['', ''];
-    final RegExp matcher = RegExp(r'^(.*) - (.*)$');
-    final match = matcher.firstMatch(title);
-
-    if (match == null) return ['', ''];
-
-    final song = match.group(1) ?? '';
-    final artist = match.group(2) ?? '';
-
-    return [song, artist];
   }
 }
