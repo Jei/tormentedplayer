@@ -11,7 +11,8 @@ class TormentedRadio {
     if (response.statusCode == 200) {
       return History.fromDocument(parse(response.body));
     } else {
-      throw Exception('Could not get Tormented Radio history: ${response.body}');
+      throw Exception(
+          'Could not get Tormented Radio history: ${response.body}');
     }
   }
 }
@@ -24,13 +25,38 @@ class Track {
   Track({this.name, this.artist, this.time});
 
   String toString() {
-    return '${this.name} - ${this.artist}';
+    return '${this.time.toLocal()} | ${this.name} - ${this.artist}';
   }
 
   factory Track.fromElement(Element element) {
-    final String time = element.nodes[0]?.text; // TODO parse time
-    final String fullTitle = element.nodes[1]?.text;
+    final DateTime now = DateTime.now();
+    final String time = element.nodes[0]?.text;
+    final String fullTitle = element.nodes[1]?.text ?? '';
 
+    // Parse the track's time using the current DateTime as reference
+    // Note: all the times from the history are UTC
+    DateTime trackTime;
+    if (time != null) {
+      List<String> timeParts = time.split(':');
+      trackTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          int.parse(timeParts[0]),
+          int.parse(timeParts[1]),
+          int.parse(timeParts[2]),
+          0,
+          0);
+      trackTime = trackTime.add(trackTime.timeZoneOffset);
+
+      if (trackTime.isAfter(now)) {
+        trackTime = trackTime.subtract(Duration(days: 1));
+      }
+    } else {
+      trackTime = now.subtract(Duration());
+    }
+
+    // Some tracks have no title/artist (they're probably jingles)
     final emptyMatch = RegExp(r'^Empty Title$').firstMatch(fullTitle);
 
     if (emptyMatch == null) {
@@ -40,6 +66,7 @@ class Track {
         return Track(
           name: match.group(1) ?? '',
           artist: match.group(2) ?? '',
+          time: trackTime,
         );
       }
     }
@@ -47,6 +74,7 @@ class Track {
     return Track(
       name: '',
       artist: '',
+      time: trackTime,
     );
   }
 }
