@@ -80,6 +80,17 @@ class AudioPlayerTask extends BackgroundAudioTask {
   @override
   Future<void> onStart() async {
     print('ON START');
+
+    // Set base data for the media notification
+    AudioServiceBackground.setMediaItem(MediaItem(
+      id: _url,
+      album: '',
+      title: '',
+      artist: '',
+    ));
+
+    // Subscribe to AudioPlayer events
+    // Playback state events
     _eventSubscription = _audioPlayer.playbackEventStream.listen((event) {
       final state = _stateToBasicState(event.state);
       if (state != BasicPlaybackState.stopped) {
@@ -87,10 +98,13 @@ class AudioPlayerTask extends BackgroundAudioTask {
       }
       _setState(state);
     });
+
+    // Icy metadata events
     _metadataSubscription = _audioPlayer.icyMetadataStream.listen((event) {
       final String icyTitle = event?.info?.title;
       final List<String> parsedTitle = _parseIcyTitle(icyTitle);
 
+      // Use the current track's metadata to refresh the media notification
       AudioServiceBackground.setMediaItem(MediaItem(
         id: _url,
         album: '', // TODO get from LastFM
