@@ -28,6 +28,7 @@ dependencies:
       url: https://github.com/Jei/just_audio.git
       ref: icy-metadata
   audio_service: ^0.6.2
+  html: ^0.14.0+3
   http: ^0.12.0+4
   transparent_image: ^1.0.0
 
