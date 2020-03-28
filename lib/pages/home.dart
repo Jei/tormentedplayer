@@ -73,7 +73,6 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('AppLifecycleState: $state');
     switch (state) {
       case AppLifecycleState.paused:
         _disconnect();
@@ -145,7 +144,6 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
             builder: (context, snapshot) {
               final String title = snapshot.data?.title ?? '';
               final String artist = snapshot.data?.artist ?? '';
-              print('new media item: $title - $artist');
 
               if (title.isNotEmpty && artist.isNotEmpty) {
                 return FutureBuilder(

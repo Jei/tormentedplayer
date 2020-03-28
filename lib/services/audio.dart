@@ -79,8 +79,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart() async {
-    print('ON START');
-
     // Set base data for the media notification
     AudioServiceBackground.setMediaItem(MediaItem(
       id: _url,
@@ -115,28 +113,23 @@ class AudioPlayerTask extends BackgroundAudioTask {
     });
 
     await _audioPlayer.setUrl(_url);
-    print('URL SET');
     // Start playing immediately
     onPlay();
     await _completer.future;
-    print('ON START END');
   }
 
   @override
   void onPlay() {
-    print('ON PLAY');
     _audioPlayer.play();
   }
 
   @override
   void onPause() {
-    print('ON PAUSE');
     _audioPlayer.pause();
   }
 
   @override
   void onStop() {
-    print('ON STOP');
     _audioPlayer.stop();
     _setState(BasicPlaybackState.stopped);
     _eventSubscription.cancel();
