@@ -116,6 +116,8 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
     await _audioPlayer.setUrl(_url);
     print('URL SET');
+    // Start playing immediately
+    onPlay();
     await _completer.future;
     print('ON START END');
   }

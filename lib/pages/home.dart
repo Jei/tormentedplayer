@@ -23,28 +23,47 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
     AudioService.disconnect();
   }
 
+  void _play() {
+    BasicPlaybackState state =
+        AudioService.playbackState?.basicState ?? BasicPlaybackState.none;
+
+    // TODO handle BasicPlaybackState.error case differently
+    switch (state) {
+      case BasicPlaybackState.paused:
+        AudioService.play();
+        break;
+      case BasicPlaybackState.none:
+      case BasicPlaybackState.stopped:
+      case BasicPlaybackState.error:
+        AudioService.start(
+          backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
+          androidNotificationChannelName: 'Tormented Player',
+          notificationColor: 0xFF2196f3,
+          androidNotificationIcon: 'drawable/ic_notification_radio',
+          enableQueue: false,
+          androidStopForegroundOnPause: true,
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _stop() {
+    AudioService.stop();
+  }
+
   @override
   void initState() {
     super.initState();
 
     WidgetsBinding.instance.addObserver(this);
 
-    print('starting audioservice');
-    AudioService.start(
-      backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
-      androidNotificationChannelName: 'Tormented Player',
-      notificationColor: 0xFF2196f3,
-      androidNotificationIcon: 'drawable/ic_notification_radio',
-      enableQueue: false,
-    );
-    print('audioservice started');
     _connect();
-    print('connected to audioservice');
   }
 
   @override
   void dispose() {
-    print('dispose');
     _disconnect();
 
     WidgetsBinding.instance.removeObserver(this);
@@ -57,11 +76,9 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
     print('AppLifecycleState: $state');
     switch (state) {
       case AppLifecycleState.paused:
-        print('onpause');
         _disconnect();
         break;
       case AppLifecycleState.resumed:
-        print('onresume');
         _connect();
         break;
       default:
@@ -163,12 +180,8 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return StreamBuilder<PlaybackState>(
         stream: AudioService.playbackStateStream,
         builder: (context, snapshot) {
-          final BasicPlaybackState state =
-              snapshot.data?.basicState ?? BasicPlaybackState.none;
-          print('New playback state: ${snapshot.data?.basicState}');
-          final bool isLoading = state == null ||
-              state == BasicPlaybackState.none ||
-              state == BasicPlaybackState.connecting;
+          final BasicPlaybackState state = snapshot.data?.basicState;
+          final bool isLoading = state == BasicPlaybackState.connecting;
           final bool isPlaying = state == BasicPlaybackState.playing;
 
           return FloatingActionButton(
@@ -180,15 +193,8 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ))
                 : Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-            onPressed: () async {
-              try {
-                isPlaying
-                    ? await AudioService.pause()
-                    : await AudioService.play();
-              } catch (err) {
-                print(err);
-                AudioService.pause();
-              }
+            onPressed: () {
+              isPlaying ? _stop() : _play();
             },
           );
         });
