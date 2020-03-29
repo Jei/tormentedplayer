@@ -64,8 +64,8 @@ class Track {
 
       if (match != null) {
         return Track(
-          name: match.group(1) ?? '',
-          artist: match.group(2) ?? '',
+          name: match.group(2) ?? '',
+          artist: match.group(1) ?? '',
           time: trackTime,
         );
       }
