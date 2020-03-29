@@ -1,8 +1,7 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:tormentedplayer/blocs/metadata.dart';
 import 'package:tormentedplayer/blocs/radio.dart';
 import 'package:tormentedplayer/models/track.dart';
-import 'package:tormentedplayer/resources/repository.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
@@ -12,7 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  Repository _repository = Repository();
+  MetadataBloc _metadataBloc = MetadataBloc();
 
   @override
   void initState() {
@@ -26,6 +25,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     RadioBloc.disconnect();
+    _metadataBloc.dispose();
 
     WidgetsBinding.instance.removeObserver(this);
 
@@ -100,38 +100,24 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
       alignment: Alignment.center,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: StreamBuilder<MediaItem>(
-            stream: AudioService.currentMediaItemStream,
+        child: StreamBuilder<Track>(
+            initialData: Track(),
+            stream: _metadataBloc.trackStream,
             builder: (context, snapshot) {
-              final String title = snapshot.data?.title ?? '';
-              final String artist = snapshot.data?.artist ?? '';
-
-              if (title.isNotEmpty && artist.isNotEmpty) {
-                return FutureBuilder<Track>(
-                  future: _repository.fetchTrack(title, artist),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      print(snapshot.error);
-                    }
-
-                    return TrackCover(snapshot.data?.image);
-                  },
-                );
-              } else {
-                return TrackCover(null);
-              }
+              return TrackCover(snapshot.data?.image);
             }),
       ),
     );
   }
 
   Widget buildInfo() {
-    return StreamBuilder<MediaItem>(
-        stream: AudioService.currentMediaItemStream,
+    return StreamBuilder<Track>(
+        stream: _metadataBloc.trackStream,
         builder: (context, snapshot) {
+          print('NEW TRACK: ${snapshot.data}');
           return TrackInfo(
-            title: snapshot?.data?.title ?? '-',
-            artist: snapshot?.data?.artist ?? '-',
+            title: snapshot.data?.title ?? '-',
+            artist: snapshot.data?.artist ?? '-',
           );
         });
   }
