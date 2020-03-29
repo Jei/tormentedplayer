@@ -28,11 +28,11 @@ class RadioBloc {
     }
   }
 
-  Stream<RadioPlaybackState> get playbackStateStream => AudioService
-      .playbackStateStream
-      .map((state) => _basicToRadioPlaybackState(state?.basicState));
+  static Stream<RadioPlaybackState> get playbackStateStream =>
+      AudioService.playbackStateStream
+          .map((state) => _basicToRadioPlaybackState(state?.basicState));
 
-  start() {
+  static start() {
     RadioPlaybackState state =
         _basicToRadioPlaybackState(AudioService.playbackState?.basicState);
 
@@ -58,15 +58,15 @@ class RadioBloc {
     }
   }
 
-  stop() {
+  static stop() {
     AudioService.stop();
   }
 
-  connect() {
+  static connect() {
     AudioService.connect();
   }
 
-  disconnect() {
+  static disconnect() {
     AudioService.disconnect();
   }
 }

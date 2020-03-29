@@ -12,7 +12,6 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  RadioBloc _radio = RadioBloc();
   Repository _repository = Repository();
 
   @override
@@ -21,12 +20,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    _radio.connect();
+    RadioBloc.connect();
   }
 
   @override
   void dispose() {
-    _radio.disconnect();
+    RadioBloc.disconnect();
 
     WidgetsBinding.instance.removeObserver(this);
 
@@ -37,10 +36,10 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
-        _radio.disconnect();
+        RadioBloc.disconnect();
         break;
       case AppLifecycleState.resumed:
-        _radio.connect();
+        RadioBloc.connect();
         break;
       default:
         break;
@@ -51,7 +50,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        _radio.disconnect();
+        RadioBloc.disconnect();
         return Future.value(true);
       },
       child: Scaffold(
@@ -139,7 +138,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildControls() {
     return StreamBuilder<RadioPlaybackState>(
-        stream: _radio.playbackStateStream,
+        stream: RadioBloc.playbackStateStream,
         builder: (context, snapshot) {
           final RadioPlaybackState state = snapshot.data;
           final bool isLoading = state == RadioPlaybackState.connecting;
@@ -157,7 +156,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
             onPressed: () {
               if (isLoading) return;
 
-              isPlaying ? _radio.stop() : _radio.start();
+              isPlaying ? RadioBloc.stop() : RadioBloc.start();
             },
           );
         });
