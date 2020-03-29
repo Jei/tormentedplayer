@@ -104,6 +104,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
             initialData: Track(),
             stream: _metadataBloc.trackStream,
             builder: (context, snapshot) {
+              print('NEW COVER: ${snapshot.data?.image}');
               return TrackCover(snapshot.data?.image);
             }),
       ),
@@ -112,9 +113,10 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildInfo() {
     return StreamBuilder<Track>(
+        initialData: Track(),
         stream: _metadataBloc.trackStream,
         builder: (context, snapshot) {
-          print('NEW TRACK: ${snapshot.data}');
+          print('NEW INFO: ${snapshot.data}');
           return TrackInfo(
             title: snapshot.data?.title ?? '-',
             artist: snapshot.data?.artist ?? '-',

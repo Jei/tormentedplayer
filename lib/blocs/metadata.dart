@@ -17,7 +17,10 @@ class MetadataBloc {
     // Stream 2: partial Track data from Tormented Radio every 10 seconds (only when AudioService is not playing)
     _partialTrackSubject.addStream(Rx.merge<Track>([
       AudioService.currentMediaItemStream
-          .map((item) => Track(title: item?.title, artist: item?.artist)),
+          .map((item) => Track(title: item?.title, artist: item?.artist))
+          .where((_) =>
+              AudioService.playbackState?.basicState ==
+              BasicPlaybackState.playing),
       ConcatStream([
         Stream.value(null),
         Stream.periodic(Duration(seconds: 10)),
@@ -27,7 +30,7 @@ class MetadataBloc {
               BasicPlaybackState.playing)
           .transform(SwitchMapStreamTransformer(
               (_) => Stream.fromFuture(_fetchPartialTrack()))),
-    ]));
+    ]).distinct(_compareTracks)); // Emit only when we have a different track
 
     // Stream 1: partial Track data from the current source (AudioService or Tormented Radio Shout website)
     // Stream 2: complete Track data from the last LastFM API call
@@ -47,6 +50,13 @@ class MetadataBloc {
       track != null &&
       (track?.title ?? '').isNotEmpty &&
       (track?.artist ?? '').isNotEmpty;
+
+  static bool _compareTracks(Track t1, Track t2) {
+    return t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
+        t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase() &&
+        t1?.album?.toLowerCase() == t2?.album?.toLowerCase() &&
+        t1?.image?.toLowerCase() == t2?.image?.toLowerCase();
+  }
 
   Future<Track> _fetchFullTrack(Track track) =>
       _repository.fetchTrack(track?.title, track?.artist).catchError((err) {
