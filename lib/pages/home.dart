@@ -1,7 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:tormentedplayer/blocs/radio.dart';
-import 'package:tormentedplayer/services/lastfm.dart';
+import 'package:tormentedplayer/models/track.dart';
+import 'package:tormentedplayer/resources/repository.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
@@ -12,9 +13,7 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   RadioBloc _radio = RadioBloc();
-  LastFM _lastFM = LastFM(LastFMConfig(
-    apiKey: 'XXX',
-  ));
+  Repository _repository = Repository();
 
   @override
   void initState() {
@@ -109,13 +108,14 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
               final String artist = snapshot.data?.artist ?? '';
 
               if (title.isNotEmpty && artist.isNotEmpty) {
-                return FutureBuilder(
-                  future: _lastFM.getTrackInfo(track: title, artist: artist),
+                return FutureBuilder<Track>(
+                  future: _repository.fetchTrack(title, artist),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       print(snapshot.error);
                     }
-                    return TrackCover(snapshot.data?.album?.image?.extraLarge);
+
+                    return TrackCover(snapshot.data?.image);
                   },
                 );
               } else {
