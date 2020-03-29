@@ -81,7 +81,7 @@ class Album {
       title: json['title'],
       mbid: json['mbid'],
       url: json['url'],
-      image: Image.fromJson(json['image']),
+      image: json['image'] != null ? Image.fromJson(json['image']) : null,
     );
   }
 }
@@ -140,10 +140,10 @@ class Track {
   factory Track.fromJson(Map<String, dynamic> json) {
     return Track(
       name: json['name'],
-      artist: Artist.fromJson(json['artist']),
+      artist: json['artist'] != null ? Artist.fromJson(json['artist']) : null,
       url: json['url'],
       duration: int.tryParse(json['duration']),
-      album: Album.fromJson(json['album']),
+      album: json['album'] != null ? Album.fromJson(json['album']) : null,
       mbid: json['mbid'],
     );
   }
