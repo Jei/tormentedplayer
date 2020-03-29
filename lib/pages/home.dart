@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
-import 'package:tormentedplayer/services/audio.dart';
+import 'package:tormentedplayer/blocs/radio.dart';
 import 'package:tormentedplayer/services/lastfm.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
@@ -11,47 +11,10 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> with WidgetsBindingObserver {
+  RadioBloc _radio = RadioBloc();
   LastFM _lastFM = LastFM(LastFMConfig(
     apiKey: 'XXX',
   ));
-
-  void _connect() {
-    AudioService.connect();
-  }
-
-  void _disconnect() {
-    AudioService.disconnect();
-  }
-
-  void _play() {
-    BasicPlaybackState state =
-        AudioService.playbackState?.basicState ?? BasicPlaybackState.none;
-
-    // TODO handle BasicPlaybackState.error case differently
-    switch (state) {
-      case BasicPlaybackState.paused:
-        AudioService.play();
-        break;
-      case BasicPlaybackState.none:
-      case BasicPlaybackState.stopped:
-      case BasicPlaybackState.error:
-        AudioService.start(
-          backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
-          androidNotificationChannelName: 'Tormented Player',
-          notificationColor: 0xFF2196f3,
-          androidNotificationIcon: 'drawable/ic_notification_radio',
-          enableQueue: false,
-          androidStopForegroundOnPause: true,
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
-  void _stop() {
-    AudioService.stop();
-  }
 
   @override
   void initState() {
@@ -59,12 +22,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addObserver(this);
 
-    _connect();
+    _radio.connect();
   }
 
   @override
   void dispose() {
-    _disconnect();
+    _radio.disconnect();
 
     WidgetsBinding.instance.removeObserver(this);
 
@@ -75,10 +38,10 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.paused:
-        _disconnect();
+        _radio.disconnect();
         break;
       case AppLifecycleState.resumed:
-        _connect();
+        _radio.connect();
         break;
       default:
         break;
@@ -89,7 +52,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () {
-        _disconnect();
+        _radio.disconnect();
         return Future.value(true);
       },
       child: Scaffold(
@@ -175,12 +138,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget buildControls() {
-    return StreamBuilder<PlaybackState>(
-        stream: AudioService.playbackStateStream,
+    return StreamBuilder<RadioPlaybackState>(
+        stream: _radio.playbackStateStream,
         builder: (context, snapshot) {
-          final BasicPlaybackState state = snapshot.data?.basicState;
-          final bool isLoading = state == BasicPlaybackState.connecting;
-          final bool isPlaying = state == BasicPlaybackState.playing;
+          final RadioPlaybackState state = snapshot.data;
+          final bool isLoading = state == RadioPlaybackState.connecting;
+          final bool isPlaying = state == RadioPlaybackState.playing;
 
           return FloatingActionButton(
             child: isLoading
@@ -192,7 +155,9 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     ))
                 : Icon(isPlaying ? Icons.pause : Icons.play_arrow),
             onPressed: () {
-              isPlaying ? _stop() : _play();
+              if (isLoading) return;
+
+              isPlaying ? _radio.stop() : _radio.start();
             },
           );
         });
