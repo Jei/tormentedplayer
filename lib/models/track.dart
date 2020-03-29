@@ -5,4 +5,7 @@ class Track {
   String image;
 
   Track({this.title, this.artist, this.album, this.image});
+
+  String toString() =>
+      '${this.title} - ${this.artist} - [${this.album}] - {${this.image}}';
 }
