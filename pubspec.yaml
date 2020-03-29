@@ -30,6 +30,7 @@ dependencies:
   audio_service: ^0.6.2
   html: ^0.14.0+3
   http: ^0.12.0+4
+  provider: ^4.0.4
   transparent_image: ^1.0.0
 
 dev_dependencies:
