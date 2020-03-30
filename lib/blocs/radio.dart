@@ -2,9 +2,11 @@ import 'package:audio_service/audio_service.dart';
 import 'package:tormentedplayer/services/audio.dart';
 
 class RadioBloc {
-  static RadioPlaybackState _basicToRadioPlaybackState(
-      BasicPlaybackState state) {
-    switch (state) {
+  static RadioPlaybackState _audioToRadioPlaybackState(
+      PlaybackState state) {
+    BasicPlaybackState basicState = state?.basicState;
+
+    switch (basicState) {
       case BasicPlaybackState.error:
         return RadioPlaybackState.error;
       case BasicPlaybackState.stopped:
@@ -30,11 +32,14 @@ class RadioBloc {
 
   static Stream<RadioPlaybackState> get playbackStateStream =>
       AudioService.playbackStateStream
-          .map((state) => _basicToRadioPlaybackState(state?.basicState));
+          .map(_audioToRadioPlaybackState);
+
+  static RadioPlaybackState get playbackState =>
+      _audioToRadioPlaybackState(AudioService.playbackState);
 
   static start() {
     RadioPlaybackState state =
-        _basicToRadioPlaybackState(AudioService.playbackState?.basicState);
+        _audioToRadioPlaybackState(AudioService.playbackState);
 
     // TODO handle BasicPlaybackState.error case differently
     switch (state) {
