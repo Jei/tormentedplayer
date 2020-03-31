@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tormentedplayer/models/track.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class TrackCover extends StatelessWidget {
-  final String src;
-
-  const TrackCover(this.src, {Key key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     // TODO add placeholder image
+    Track track = Provider.of<Track>(context);
+    String src = track?.image;
+
     return AspectRatio(
       aspectRatio: 1,
       child: ClipRRect(

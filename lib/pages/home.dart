@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/metadata.dart';
 import 'package:tormentedplayer/blocs/radio.dart';
 import 'package:tormentedplayer/models/track.dart';
@@ -57,39 +58,18 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(32.0),
-          child: OrientationBuilder(
-            builder: (BuildContext context, Orientation orientation) {
-              if (orientation == Orientation.portrait) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    buildCover(),
-                    buildInfo(),
-                    PlayerButton(),
-                  ],
-                );
-              } else {
-                return Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    buildCover(),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          buildInfo(),
-                          SizedBox(height: 32.0),
-                          PlayerButton(),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }
-            },
+          child: StreamProvider<Track>.value(
+            initialData: Track(),
+            value: _metadataBloc.trackStream,
+            child: OrientationBuilder(
+              builder: (BuildContext context, Orientation orientation) {
+                if (orientation == Orientation.portrait) {
+                  return buildPortraitLayout();
+                } else {
+                  return buildLandscapeLayout();
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -101,25 +81,41 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
       alignment: Alignment.center,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: StreamBuilder<Track>(
-            initialData: Track(),
-            stream: _metadataBloc.trackStream,
-            builder: (context, snapshot) {
-              return TrackCover(snapshot.data?.image);
-            }),
+        child: TrackCover(),
       ),
     );
   }
 
-  Widget buildInfo() {
-    return StreamBuilder<Track>(
-        initialData: Track(),
-        stream: _metadataBloc.trackStream,
-        builder: (context, snapshot) {
-          return TrackInfo(
-            title: snapshot.data?.title ?? '-',
-            artist: snapshot.data?.artist ?? '-',
-          );
-        });
+  Widget buildPortraitLayout() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        buildCover(),
+        TrackInfo(),
+        PlayerButton(),
+      ],
+    );
+  }
+
+  Widget buildLandscapeLayout() {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        buildCover(),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TrackInfo(),
+              SizedBox(height: 32.0),
+              PlayerButton(),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

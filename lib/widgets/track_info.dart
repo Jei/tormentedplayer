@@ -1,14 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tormentedplayer/models/track.dart';
 
 class TrackInfo extends StatelessWidget {
-  final String title;
-  final String artist;
-
-  const TrackInfo({Key key, this.title, this.artist}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
+    Track track = Provider.of<Track>(context);
+
     return Padding(
       padding: EdgeInsets.all(8.0),
       child: Column(
@@ -19,7 +18,7 @@ class TrackInfo extends StatelessWidget {
             alignment: Alignment.center,
             height: 48.0,
             child: Text(
-              title,
+              track?.title ?? '',
               style: Theme.of(context).textTheme.headline6,
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -29,7 +28,7 @@ class TrackInfo extends StatelessWidget {
             alignment: Alignment.center,
             height: 48.0,
             child: Text(
-              artist,
+              track?.artist ?? '',
               style: Theme.of(context).textTheme.subtitle1,
               textAlign: TextAlign.center,
               maxLines: 2,
