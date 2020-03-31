@@ -27,33 +27,31 @@ class MetadataBloc {
               (_) => Stream.fromFuture(_fetchPartialTrack())))
           .where(_isAudioInactive),
       // Check again for Audio activity, since the API call may complete later
-    ]).distinct(_compareTracks)); // Emit only when we have a different track
+    ]).where(_validateTrack).distinct(_compareTracks));
 
     // Stream 1: partial Track data from the current source (AudioService or Tormented Radio Shout website)
     // Stream 2: complete Track data from the last LastFM API call
     _trackSubject.addStream(Rx.merge([
-      _partialTrackSubject.stream.where(_validateTrack),
-      _partialTrackSubject.stream
-          .where(_validateTrack)
-          .transform(SwitchMapStreamTransformer(
-              (item) => Stream.fromFuture(_fetchFullTrack(item))))
-          .where(_validateTrack),
-    ]));
+      _partialTrackSubject.stream,
+      _partialTrackSubject.stream.transform(SwitchMapStreamTransformer(
+          (item) => Stream.fromFuture(_fetchFullTrack(item)))),
+    ]).distinct(_compareTracks)); // Emit only when we have a different track
   }
 
   Stream<Track> get trackStream => _trackSubject.stream;
+
+  Track get track => _trackSubject.value;
 
   static bool _validateTrack(Track track) =>
       track != null &&
       (track?.title ?? '').isNotEmpty &&
       (track?.artist ?? '').isNotEmpty;
 
-  static bool _compareTracks(Track t1, Track t2) {
-    return t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
-        t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase() &&
-        t1?.album?.toLowerCase() == t2?.album?.toLowerCase() &&
-        t1?.image?.toLowerCase() == t2?.image?.toLowerCase();
-  }
+  static bool _compareTracks(Track t1, Track t2) =>
+      t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
+      t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase() &&
+      t1?.album?.toLowerCase() == t2?.album?.toLowerCase() &&
+      t1?.image?.toLowerCase() == t2?.image?.toLowerCase();
 
   static bool _isAudioActive(_) {
     BasicPlaybackState state = AudioService.playbackState?.basicState;
@@ -70,8 +68,17 @@ class MetadataBloc {
 
   static bool _isAudioInactive(_) => !_isAudioActive(_);
 
-  Future<Track> _fetchFullTrack(Track track) =>
-      _repository.fetchTrack(track?.title, track?.artist).catchError((err) {
+  // Fetch full track data from the repository and combine with the partial data.
+  // We don't use title and artist from the repository because they could be different from the originals.
+  Future<Track> _fetchFullTrack(Track track) => _repository
+          .fetchTrack(track?.title, track?.artist)
+          .then((Track full) => Track(
+                title: track.title,
+                artist: track.artist,
+                album: full.album,
+                image: full.image,
+              ))
+          .catchError((err) {
         print(err);
         return null;
       });
