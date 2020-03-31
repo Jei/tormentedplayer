@@ -11,25 +11,22 @@ class MetadataBloc {
   final BehaviorSubject<Track> _trackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _partialTrackSubject = BehaviorSubject<Track>();
 
-  // TODO get data from Tormented Radio when AudioService is not connected or stopped
   MetadataBloc() {
     // Stream 1: partial Track data from AudioService
     // Stream 2: partial Track data from Tormented Radio every 10 seconds (only when AudioService is not playing)
     _partialTrackSubject.addStream(Rx.merge<Track>([
       AudioService.currentMediaItemStream
-          .map((item) => Track(title: item?.title, artist: item?.artist))
-          .where((_) =>
-              AudioService.playbackState?.basicState ==
-              BasicPlaybackState.playing),
+          .where(_isAudioActive)
+          .map((item) => Track(title: item?.title, artist: item?.artist)),
       ConcatStream([
         Stream.value(null),
         Stream.periodic(Duration(seconds: 10)),
       ])
-          .where((_) =>
-              AudioService.playbackState?.basicState !=
-              BasicPlaybackState.playing)
+          .where(_isAudioInactive)
           .transform(SwitchMapStreamTransformer(
-              (_) => Stream.fromFuture(_fetchPartialTrack()))),
+              (_) => Stream.fromFuture(_fetchPartialTrack())))
+          .where(_isAudioInactive),
+      // Check again for Audio activity, since the API call may complete later
     ]).distinct(_compareTracks)); // Emit only when we have a different track
 
     // Stream 1: partial Track data from the current source (AudioService or Tormented Radio Shout website)
@@ -57,6 +54,21 @@ class MetadataBloc {
         t1?.album?.toLowerCase() == t2?.album?.toLowerCase() &&
         t1?.image?.toLowerCase() == t2?.image?.toLowerCase();
   }
+
+  static bool _isAudioActive(_) {
+    BasicPlaybackState state = AudioService.playbackState?.basicState;
+
+    switch (state) {
+      case BasicPlaybackState.playing:
+      case BasicPlaybackState.connecting:
+      case BasicPlaybackState.buffering:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static bool _isAudioInactive(_) => !_isAudioActive(_);
 
   Future<Track> _fetchFullTrack(Track track) =>
       _repository.fetchTrack(track?.title, track?.artist).catchError((err) {
