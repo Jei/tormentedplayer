@@ -65,28 +65,20 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   static List<String> _parseIcyTitle(String title) {
-    if (title == null) return ['', ''];
+    if (title == null) return [null, null];
     final RegExp matcher = RegExp(r'^(.*) - (.*)$');
     final match = matcher.firstMatch(title);
 
-    if (match == null) return ['', ''];
+    if (match == null) return [null, null];
 
-    final song = match.group(1) ?? '';
-    final artist = match.group(2) ?? '';
+    final song = match.group(1);
+    final artist = match.group(2);
 
     return [song, artist];
   }
 
   @override
   Future<void> onStart() async {
-    // Set base data for the media notification
-    AudioServiceBackground.setMediaItem(MediaItem(
-      id: _url,
-      album: '',
-      title: '',
-      artist: '',
-    ));
-
     // Subscribe to AudioPlayer events
     // Playback state events
     _eventSubscription = _audioPlayer.playbackEventStream.listen((event) {
@@ -106,8 +98,8 @@ class AudioPlayerTask extends BackgroundAudioTask {
       AudioServiceBackground.setMediaItem(MediaItem(
         id: _url,
         album: '', // TODO get from LastFM
-        title: parsedTitle[1] ?? '',
-        artist: parsedTitle[0] ?? '',
+        title: parsedTitle[1] ?? ' ',
+        artist: parsedTitle[0] ?? ' ',
         // artUri: '', // TODO get from LastFM
       ));
     });

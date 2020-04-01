@@ -12,6 +12,7 @@ class MetadataBloc {
   final BehaviorSubject<Track> _partialTrackSubject = BehaviorSubject<Track>();
 
   MetadataBloc() {
+    // TODO write some custom transformers, because this stuff is unreadable
     // Stream 1: partial Track data from AudioService
     // Stream 2: partial Track data from Tormented Radio every 10 seconds (only when AudioService is not playing)
     _partialTrackSubject.addStream(Rx.merge<Track>([
@@ -44,8 +45,8 @@ class MetadataBloc {
 
   static bool _validateTrack(Track track) =>
       track != null &&
-      (track?.title ?? '').isNotEmpty &&
-      (track?.artist ?? '').isNotEmpty;
+      (track?.title ?? '').trim().isNotEmpty &&
+      (track?.artist ?? '').trim().isNotEmpty;
 
   static bool _compareTracks(Track t1, Track t2) =>
       t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
