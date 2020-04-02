@@ -128,4 +128,9 @@ class AudioPlayerTask extends BackgroundAudioTask {
     _metadataSubscription.cancel();
     _completer.complete();
   }
+
+  @override
+  void onAudioFocusLost() {
+    onPause();
+  }
 }
