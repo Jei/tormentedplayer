@@ -1,13 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as request from 'request-promise';
 import { OptionsWithUri } from 'request';
-
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
+import express = require('express');
 
 const lastFMOptions: OptionsWithUri = {
   uri: 'https://ws.audioscrobbler.com/2.0',
@@ -29,6 +23,18 @@ const trStatusOptions: OptionsWithUri = {
   },
 };
 
+class HttpError extends Error {
+  status: number;
+  message: string;
+  
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.message = message;
+    Error.captureStackTrace(this, HttpError);
+  }
+}
+
 // Get track info from LastFM
 const getLastFMTrack = async (title: String, artist: String) => {
   const options = {...lastFMOptions};
@@ -37,6 +43,10 @@ const getLastFMTrack = async (title: String, artist: String) => {
   options.qs.artist = artist;
   
   const lastFMInfo = await request(options);
+  if (lastFMInfo.error || !lastFMInfo.track) {
+    throw new HttpError(404, lastFMInfo.message || 'Invalid LastFM data.');
+  }
+  
   const imageObj = lastFMInfo.track.album?.image?.find((img: any) => img.size === 'extralarge') ?? {};
   
   return {
@@ -47,51 +57,67 @@ const getLastFMTrack = async (title: String, artist: String) => {
   };
 };
 
-// Get additional information (album, image) on a track
-export const getTrack = functions.https.onRequest(async (req, res) => {
-  const title: String = req.query.title;
-  const artist: String = req.query.artist;
-  
-  if (!title || !artist) {
-    res.status(400).send({ error: 'Bad request - Missing track title or artist.' });
-  }
-  
+// EXPRESS
+// TODO write custom error handler
+const app = express();
+const v1 = express.Router();
+
+// Get additional information (album, image) from LastFM on a track
+v1.get('/track', async (req, res, next) => {
   try {
+    const title: String = req.query.title;
+    const artist: String = req.query.artist;
+    
+    if (!title || !artist) {
+      throw new HttpError(403, 'Missing track title or artist.');
+    }
     // Get data from LastFM
     const track = await getLastFMTrack(title, artist);
     
     // Cache the response for 1 month
     res.set('Cache-Control', 'public, max-age=2592000, s-maxage=2592000');
-    res.status(200).send(track);
+    res.json(track);
   } catch(err) {
-    // TODO handle status code of LastFM request
-    res.status(500).send({ error: 'Internal server error' });
+    next(err);
   }
 });
 
 // Get the current track from Tormented Radio and fetch additional info from LastFM
-export const getCurrentTrack = functions.https.onRequest(async (req, res) => {
+v1.get('/track/current', async (req, res, next) => {
   try {
     const trResponse: String = await request(trStatusOptions);
-
+    
     // No need to use DOMParser for this (for now)
     const matches = trResponse.match(RegExp('^<html><body>(.*)<\/body><\/html>$'));
-
-    if (matches == null) {
-      throw Error('Tormented Radio status data not found');
+    
+    if (!matches) {
+      throw new HttpError(503, 'Tormented Radio status data not found.');
     }
-
+    
     // Take the track's artist/title, considering that they could contain the ',' character
     const currentSong = matches[1].split(',').slice(6).join(',');
     const [artist, title] = currentSong.split(' - ');
-
+    
     // Get data from LastFM
     const track = await getLastFMTrack(title, artist);
-
+    
     // Cache the response for 10 seconds
     res.set('Cache-Control', 'public, max-age=10');
-    res.status(200).send(track);
+    res.json(track);
   } catch(err) {
-    res.status(500).send({ error: 'Internal server error' });
+    next(err);
   }
 });
+
+// Error handler
+v1.use((err: HttpError, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const { status, message } = err;
+  res.status(status).json({
+    status,
+    message,
+  });
+});
+
+app.use('/api/v1', v1);
+
+exports.api = functions.https.onRequest(app);
