@@ -2,6 +2,9 @@ import * as functions from 'firebase-functions';
 import * as request from 'request-promise';
 import { OptionsWithUri } from 'request';
 import express = require('express');
+import DomParser = require('dom-parser');
+
+const parser = new DomParser();
 
 const lastFMOptions: OptionsWithUri = {
   uri: 'https://ws.audioscrobbler.com/2.0',
@@ -58,7 +61,6 @@ const getLastFMTrack = async (title: String, artist: String) => {
 };
 
 // EXPRESS
-// TODO write custom error handler
 const app = express();
 const v1 = express.Router();
 
@@ -75,7 +77,7 @@ v1.get('/track', async (req, res, next) => {
     const track = await getLastFMTrack(title, artist);
     
     // Cache the response for 1 month
-    res.set('Cache-Control', 'public, max-age=2592000, s-maxage=2592000');
+    res.set('Cache-Control', 'public, max-age=2592000');
     res.json(track);
   } catch(err) {
     next(err);
@@ -83,23 +85,33 @@ v1.get('/track', async (req, res, next) => {
 });
 
 // Get the current track from Tormented Radio and fetch additional info from LastFM
-v1.get('/track/current', async (req, res, next) => {
+v1.get('/track/current', async (_req, res, next) => {
   try {
-    const trResponse: String = await request(trStatusOptions);
+    const trResponse: string = await request(trStatusOptions);
     
     // No need to use DOMParser for this (for now)
-    const matches = trResponse.match(RegExp('^<html><body>(.*)<\/body><\/html>$'));
+    const tags = parser.parseFromString(trResponse).getElementsByTagName('body');
+    const status = tags != null && tags.length ? tags[0]?.innerHTML : null;
     
-    if (!matches) {
+    if (!status) {
       throw new HttpError(503, 'Tormented Radio status data not found.');
     }
     
     // Take the track's artist/title, considering that they could contain the ',' character
-    const currentSong = matches[1].split(',').slice(6).join(',');
+    const currentSong = status.split(',').slice(6).join(',');
     const [artist, title] = currentSong.split(' - ');
     
     // Get data from LastFM
-    const track = await getLastFMTrack(title, artist);
+    const track = await getLastFMTrack(title, artist)
+    .catch((_) => {
+      // Ignore LastFM errors
+      return {
+        title,
+        artist,
+        album: null,
+        image: null,
+      }
+    });
     
     // Cache the response for 10 seconds
     res.set('Cache-Control', 'public, max-age=10');
@@ -110,7 +122,7 @@ v1.get('/track/current', async (req, res, next) => {
 });
 
 // Error handler
-v1.use((err: HttpError, req: express.Request, res: express.Response, next: express.NextFunction) => {
+v1.use((err: HttpError, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const { status, message } = err;
   res.status(status).json({
     status,
