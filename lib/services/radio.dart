@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tormentedplayer/models/track.dart';
 
 MediaControl playControl = MediaControl(
   label: 'Play',
@@ -53,6 +54,9 @@ class Radio {
     }
   }
 
+  static Track _mediaItemToTrack(MediaItem item) =>
+      Track(title: item?.title, artist: item?.artist);
+
   static start() {
     BasicPlaybackState state =
         AudioService.playbackState?.basicState ?? BasicPlaybackState.none;
@@ -91,10 +95,11 @@ class Radio {
   static RadioPlaybackState get playbackState =>
       _audioToRadioPlaybackState(AudioService.playbackState);
 
-  static Stream<MediaItem> get currentMediaItemStream =>
-      AudioService.currentMediaItemStream;
+  static Stream<Track> get currentTrackStream =>
+      AudioService.currentMediaItemStream.map(_mediaItemToTrack);
 
-  static MediaItem get currentMediaItem => AudioService.currentMediaItem;
+  static Track get currentTrack =>
+      _mediaItemToTrack(AudioService.currentMediaItem);
 }
 
 // Background task code

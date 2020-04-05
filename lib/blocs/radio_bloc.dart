@@ -20,26 +20,34 @@ class RadioBloc {
       Stream.periodic(Duration(seconds: 10)),
     ])
         .where(_isAudioInactive)
-        .transform(SwitchMapStreamTransformer(
-            (_) => Stream.fromFuture(_repository.fetchCurrentTrack())))
+        .switchMap((_) => Stream.fromFuture(_repository.fetchCurrentTrack()))
         // Check again for Audio activity, since the API call may complete later
         .where(_isAudioInactive));
 
     // Stream of the current track (title and artist only) from the radio
-    _radioTrackSubject.addStream(Radio.currentMediaItemStream
-        .where(_isAudioActive)
-        .map((item) => Track(title: item?.title, artist: item?.artist))
-        .where(_validateTrack)
-        .distinct(_compareTracks));
+    _radioTrackSubject.addStream(Radio.currentTrackStream
+        .distinct(_compareTracks)
+        .switchMap(_getFullTrackStream));
 
-    // Merge the two streams with a third, produced by another API call
+    // Merge the two streams, but emit only when the track changes
     _trackSubject.addStream(Rx.merge([
       _apiTrackSubject.stream,
       _radioTrackSubject.stream,
-      _radioTrackSubject.stream.transform(SwitchMapStreamTransformer((item) =>
-          Stream.fromFuture(
-              _repository.fetchTrack(item?.title, item?.artist)))),
     ]).distinct(_compareTracks)); // Emit only when we have a different track
+  }
+
+  Stream<Track> _getFullTrackStream(Track item) async* {
+    if (_isAudioInactive(null) || !_validateTrack(item)) return;
+
+    yield item;
+
+    try {
+      Track fullTrack = await _repository.fetchTrack(item?.title, item?.artist);
+      if (_isAudioInactive(null) || !_validateTrack(fullTrack)) return;
+      yield fullTrack;
+    } catch (err) {
+      print(err);
+    }
   }
 
   static bool _validateTrack(Track track) =>
@@ -49,7 +57,9 @@ class RadioBloc {
 
   static bool _compareTracks(Track t1, Track t2) =>
       t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
-      t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase();
+      t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase() &&
+      t1?.album != null &&
+      t1?.image != null;
 
   static bool _isAudioActive(_) {
     switch (Radio.playbackState) {
