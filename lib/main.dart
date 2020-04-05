@@ -11,7 +11,7 @@ void main() {
 
   FlutterError.onError = Crashlytics.instance.recordFlutterError;
 
-  return runApp(MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
