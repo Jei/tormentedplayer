@@ -53,9 +53,7 @@ class MetadataBloc {
 
   static bool _compareTracks(Track t1, Track t2) =>
       t1?.title?.toLowerCase() == t2?.title?.toLowerCase() &&
-      t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase() &&
-      t1?.album?.toLowerCase() == t2?.album?.toLowerCase() &&
-      t1?.image?.toLowerCase() == t2?.image?.toLowerCase();
+      t1?.artist?.toLowerCase() == t2?.artist?.toLowerCase();
 
   static bool _isAudioActive(_) {
     BasicPlaybackState state = AudioService.playbackState?.basicState;
