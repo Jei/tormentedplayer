@@ -3,6 +3,7 @@ import * as request from 'request-promise';
 import { OptionsWithUri } from 'request';
 import express = require('express');
 import DomParser = require('dom-parser');
+import * as he from 'he';
 
 const parser = new DomParser();
 
@@ -89,9 +90,8 @@ v1.get('/track/current', async (_req, res, next) => {
   try {
     const trResponse: string = await request(trStatusOptions);
     
-    // No need to use DOMParser for this (for now)
     const tags = parser.parseFromString(trResponse).getElementsByTagName('body');
-    const status = tags != null && tags.length ? tags[0]?.innerHTML : null;
+    const status = tags && tags.length ? he.decode(tags[0]?.textContent) : null;
     
     if (!status) {
       throw new HttpError(503, 'Tormented Radio status data not found.');
