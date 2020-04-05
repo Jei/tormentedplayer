@@ -1,3 +1,5 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:tormentedplayer/pages/home.dart';
@@ -14,11 +16,24 @@ void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
   final ThemeData theme = ThemeData(
     brightness: Brightness.dark,
     accentColor: Colors.redAccent,
   );
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
+  @override
+  void initState() {
+    analytics.logAppOpen();
+
+    super.initState();
+  }
 
   // This widget is the root of your application.
   @override
@@ -28,6 +43,9 @@ class MyApp extends StatelessWidget {
       theme: theme,
       darkTheme: theme,
       home: HomePage(),
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: analytics),
+      ],
     );
   }
 }

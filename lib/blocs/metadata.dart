@@ -11,7 +11,6 @@ class MetadataBloc {
   final BehaviorSubject<Track> _apiTrackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _radioTrackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _trackSubject = BehaviorSubject<Track>();
-  final BehaviorSubject<Track> _partialTrackSubject = BehaviorSubject<Track>();
 
   // TODO write some custom transformers, because this stuff is unreadable
   MetadataBloc() {
@@ -74,7 +73,8 @@ class MetadataBloc {
   static bool _isAudioInactive(_) => !_isAudioActive(_);
 
   dispose() {
-    _partialTrackSubject.close();
+    _apiTrackSubject.close();
+    _radioTrackSubject.close();
     _trackSubject.close();
   }
 }
