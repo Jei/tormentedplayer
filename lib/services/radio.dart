@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
-// TODO add "close"/"stop" button
 MediaControl playControl = MediaControl(
   label: 'Play',
   action: MediaAction.play,
@@ -15,6 +14,90 @@ MediaControl pauseControl = MediaControl(
   androidIcon: 'drawable/ic_pause_black',
 );
 
+enum RadioPlaybackState {
+  none,
+  stopped,
+  paused,
+  playing,
+  buffering,
+  error,
+  connecting,
+}
+
+// Foreground methods
+class Radio {
+  static RadioPlaybackState _audioToRadioPlaybackState(PlaybackState state) {
+    BasicPlaybackState basicState = state?.basicState;
+
+    switch (basicState) {
+      case BasicPlaybackState.error:
+        return RadioPlaybackState.error;
+      case BasicPlaybackState.stopped:
+        return RadioPlaybackState.stopped;
+      case BasicPlaybackState.paused:
+        return RadioPlaybackState.paused;
+      case BasicPlaybackState.playing:
+        return RadioPlaybackState.playing;
+      case BasicPlaybackState.buffering:
+        return RadioPlaybackState.buffering;
+      case BasicPlaybackState.connecting:
+        return RadioPlaybackState.connecting;
+      case BasicPlaybackState.fastForwarding:
+      case BasicPlaybackState.rewinding:
+      case BasicPlaybackState.skippingToPrevious:
+      case BasicPlaybackState.skippingToNext:
+      case BasicPlaybackState.skippingToQueueItem:
+        throw Exception('Unsupported AudioService state');
+      default:
+        return RadioPlaybackState.none;
+    }
+  }
+
+  static start() {
+    BasicPlaybackState state =
+        AudioService.playbackState?.basicState ?? BasicPlaybackState.none;
+
+    // TODO handle BasicPlaybackState.error case differently
+    switch (state) {
+      case BasicPlaybackState.paused:
+        AudioService.play();
+        break;
+      case BasicPlaybackState.none:
+      case BasicPlaybackState.stopped:
+      case BasicPlaybackState.error:
+        AudioService.start(
+          backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
+          androidNotificationChannelName: 'Tormented Player',
+          notificationColor: 0xFF2196f3,
+          androidNotificationIcon: 'drawable/ic_notification_radio',
+          enableQueue: false,
+          androidStopForegroundOnPause: true,
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  static stop() => AudioService.stop();
+
+  static connect() => AudioService.connect();
+
+  static disconnect() => AudioService.disconnect();
+
+  static Stream<RadioPlaybackState> get playbackStateStream =>
+      AudioService.playbackStateStream.map(_audioToRadioPlaybackState);
+
+  static RadioPlaybackState get playbackState =>
+      _audioToRadioPlaybackState(AudioService.playbackState);
+
+  static Stream<MediaItem> get currentMediaItemStream =>
+      AudioService.currentMediaItemStream;
+
+  static MediaItem get currentMediaItem => AudioService.currentMediaItem;
+}
+
+// Background task code
 void audioPlayerTaskEntryPoint() async {
   AudioServiceBackground.run(() => AudioPlayerTask());
 }

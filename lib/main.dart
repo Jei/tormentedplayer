@@ -2,6 +2,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/pages/home.dart';
 
 void main() {
@@ -42,7 +44,10 @@ class MyAppState extends State<MyApp> {
       title: 'Flutter Demo',
       theme: theme,
       darkTheme: theme,
-      home: HomePage(),
+      home: Provider<RadioBloc>(
+        create: (_) => RadioBloc(),
+        child: HomePage(),
+      ),
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
