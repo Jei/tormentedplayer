@@ -8,34 +8,38 @@ import 'package:tormentedplayer/resources/repository.dart';
 class MetadataBloc {
   Repository _repository = Repository();
 
+  final BehaviorSubject<Track> _apiTrackSubject = BehaviorSubject<Track>();
+  final BehaviorSubject<Track> _radioTrackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _trackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _partialTrackSubject = BehaviorSubject<Track>();
 
+  // TODO write some custom transformers, because this stuff is unreadable
   MetadataBloc() {
-    // TODO write some custom transformers, because this stuff is unreadable
-    // Stream 1: partial Track data from AudioService
-    // Stream 2: partial Track data from Tormented Radio every 10 seconds (only when AudioService is not playing)
-    _partialTrackSubject.addStream(Rx.merge<Track>([
-      AudioService.currentMediaItemStream
-          .where(_isAudioActive)
-          .map((item) => Track(title: item?.title, artist: item?.artist)),
-      ConcatStream([
-        Stream.value(null),
-        Stream.periodic(Duration(seconds: 10)),
-      ])
-          .where(_isAudioInactive)
-          .transform(SwitchMapStreamTransformer(
-              (_) => Stream.fromFuture(_fetchPartialTrack())))
-          .where(_isAudioInactive),
-      // Check again for Audio activity, since the API call may complete later
-    ]).where(_validateTrack).distinct(_compareTracks));
+    // Stream of the current Track from the API (when the radio is off)
+    _apiTrackSubject.addStream(ConcatStream([
+      Stream.value(null),
+      Stream.periodic(Duration(seconds: 10)),
+    ])
+        .where(_isAudioInactive)
+        .transform(SwitchMapStreamTransformer(
+            (_) => Stream.fromFuture(_repository.fetchCurrentTrack())))
+        // Check again for Audio activity, since the API call may complete later
+        .where(_isAudioInactive));
 
-    // Stream 1: partial Track data from the current source (AudioService or Tormented Radio Shout website)
-    // Stream 2: complete Track data from the last LastFM API call
+    // Stream of the current track (title and artist only) from the radio
+    _radioTrackSubject.addStream(AudioService.currentMediaItemStream
+        .where(_isAudioActive)
+        .map((item) => Track(title: item?.title, artist: item?.artist))
+        .where(_validateTrack)
+        .distinct(_compareTracks));
+
+    // Merge the two streams with a third, produced by another API call
     _trackSubject.addStream(Rx.merge([
-      _partialTrackSubject.stream,
-      _partialTrackSubject.stream.transform(SwitchMapStreamTransformer(
-          (item) => Stream.fromFuture(_fetchFullTrack(item)))),
+      _apiTrackSubject.stream,
+      _radioTrackSubject.stream,
+      _radioTrackSubject.stream.transform(SwitchMapStreamTransformer((item) =>
+          Stream.fromFuture(
+              _repository.fetchTrack(item?.title, item?.artist)))),
     ]).distinct(_compareTracks)); // Emit only when we have a different track
   }
 
@@ -68,27 +72,6 @@ class MetadataBloc {
   }
 
   static bool _isAudioInactive(_) => !_isAudioActive(_);
-
-  // Fetch full track data from the repository and combine with the partial data.
-  // We don't use title and artist from the repository because they could be different from the originals.
-  Future<Track> _fetchFullTrack(Track track) => _repository
-          .fetchTrack(track?.title, track?.artist)
-          .then((Track full) => Track(
-                title: track.title,
-                artist: track.artist,
-                album: full.album,
-                image: full.image,
-              ))
-          .catchError((err) {
-        print(err);
-        return null;
-      });
-
-  Future<Track> _fetchPartialTrack() =>
-      _repository.fetchHistory().catchError((err) {
-        print(err);
-        return [Track()];
-      }).then((list) => list.length > 0 ? list[0] : Track());
 
   dispose() {
     _partialTrackSubject.close();

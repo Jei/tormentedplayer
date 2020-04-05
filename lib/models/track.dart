@@ -8,4 +8,13 @@ class Track {
 
   String toString() =>
       '${this.title} - ${this.artist} - [${this.album}] - {${this.image}}';
+
+  factory Track.fromJson(Map<String, dynamic> json) {
+    return Track(
+      title: json['title'],
+      artist: json['artist'],
+      album: json['album'],
+      image: json['image'],
+    );
+  }
 }
