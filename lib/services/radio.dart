@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:rxdart/rxdart.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tormentedplayer/models/track.dart';
+import 'package:tormentedplayer/resources/repository.dart';
 
 MediaControl playControl = MediaControl(
   label: 'Play',
@@ -54,8 +56,11 @@ class Radio {
     }
   }
 
-  static Track _mediaItemToTrack(MediaItem item) =>
-      Track(title: item?.title, artist: item?.artist);
+  static Track _mediaItemToTrack(MediaItem item) => Track(
+      title: item?.title,
+      artist: item?.artist,
+      album: (item?.album ?? '').isEmpty ? null : item.album,
+      image: (item?.artUri ?? '').isEmpty ? null : item.artUri);
 
   static start() {
     BasicPlaybackState state =
@@ -109,8 +114,9 @@ void audioPlayerTaskEntryPoint() async {
 
 class AudioPlayerTask extends BackgroundAudioTask {
   AudioPlayer _audioPlayer = AudioPlayer();
+  Repository _repository = Repository();
   StreamSubscription<AudioPlaybackEvent> _eventSubscription;
-  StreamSubscription<IcyMetadata> _metadataSubscription;
+  StreamSubscription<MediaItem> _mediaItemSubscription;
   final String _url = 'http://stream2.mpegradio.com:8070/tormented.mp3';
   Completer _completer = Completer();
 
@@ -165,6 +171,39 @@ class AudioPlayerTask extends BackgroundAudioTask {
     return [song, artist];
   }
 
+  Stream<MediaItem> _mediaItemStream(IcyMetadata item) async* {
+    final String icyTitle = item?.info?.title;
+    final List<String> parsedTitle = _parseIcyTitle(icyTitle);
+    final String title = parsedTitle[1];
+    final String artist = parsedTitle[0];
+
+    // TODO advise @ryanheise of a bug with empty title and artist
+    yield MediaItem(
+      id: _url,
+      album: '',
+      title: title ?? ' ',
+      artist: artist ?? ' ',
+      artUri: null,
+    );
+
+    if ((title ?? '').isEmpty || (artist ?? '').isEmpty) return;
+
+    try {
+      print('fetching new data');
+      Track fullTrack = await _repository.fetchTrack(title, artist);
+
+      yield MediaItem(
+        id: _url,
+        album: fullTrack.album ?? '',
+        title: title,
+        artist: artist,
+        artUri: fullTrack.image,
+      );
+    } catch (err) {
+      print(err);
+    }
+  }
+
   @override
   Future<void> onStart() async {
     // Subscribe to AudioPlayer events
@@ -178,19 +217,10 @@ class AudioPlayerTask extends BackgroundAudioTask {
     });
 
     // Icy metadata events
-    _metadataSubscription = _audioPlayer.icyMetadataStream.listen((event) {
-      final String icyTitle = event?.info?.title;
-      final List<String> parsedTitle = _parseIcyTitle(icyTitle);
-
-      // Use the current track's metadata to refresh the media notification
-      AudioServiceBackground.setMediaItem(MediaItem(
-        id: _url,
-        album: '', // TODO get from LastFM
-        title: parsedTitle[1] ?? ' ',
-        artist: parsedTitle[0] ?? ' ',
-        // artUri: '', // TODO get from LastFM
-      ));
-    });
+    _mediaItemSubscription = _audioPlayer.icyMetadataStream
+    .distinct((prev, next) => prev.info?.title == next.info?.title)
+        .switchMap(_mediaItemStream)
+        .listen(AudioServiceBackground.setMediaItem);
 
     await _audioPlayer.setUrl(_url);
     // Start playing immediately
@@ -213,7 +243,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
     _audioPlayer.stop();
     _setState(BasicPlaybackState.stopped);
     _eventSubscription.cancel();
-    _metadataSubscription.cancel();
+    _mediaItemSubscription.cancel();
     _completer.complete();
   }
 
