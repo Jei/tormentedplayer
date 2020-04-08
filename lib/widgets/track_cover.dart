@@ -16,23 +16,25 @@ class TrackCover extends StatelessWidget {
       builder: (context, snapshot) {
         String src = snapshot.data?.image ?? '';
 
-        return AspectRatio(
-          aspectRatio: 1,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16.0),
+        return Material(
+          elevation: 4,
+          borderRadius: BorderRadius.circular(8.0),
+          clipBehavior: Clip.antiAlias,
+          child: AspectRatio(
+            aspectRatio: 1,
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black45,
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                ),
+                child: src.isNotEmpty
+                    ? FadeInImage.memoryNetwork(
+                  image: src,
+                  placeholder: kTransparentImage,
+                  fit: BoxFit.cover,
+                )
+                    : null,
               ),
-              child: src.isNotEmpty
-                  ? FadeInImage.memoryNetwork(
-                      image: src,
-                      placeholder: kTransparentImage,
-                      fit: BoxFit.cover,
-                    )
-                  : null,
             ),
-          ),
         );
       },
     );
