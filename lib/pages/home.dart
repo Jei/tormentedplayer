@@ -64,7 +64,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
           decoration: BoxDecoration(
             gradient: buildBackground([
               Color.fromARGB(76, 33, 33, 33),
-              Color(0xFFFFFFFF),
+              Theme.of(context).scaffoldBackgroundColor,
             ]),
           ),
           child: SafeArea(
