@@ -12,6 +12,7 @@ class PlayerButton extends StatelessWidget {
     final splash = Theme.of(context).primaryColor.withAlpha(50);
 
     return Material(
+      color: Colors.transparent,
       child: Center(
         child: Ink(
           height: 72,
