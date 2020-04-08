@@ -60,62 +60,74 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return Future.value(true);
       },
       child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: OrientationBuilder(
-            builder: (BuildContext context, Orientation orientation) {
-              if (orientation == Orientation.portrait) {
-                return buildPortraitLayout();
-              } else {
-                return buildLandscapeLayout();
-              }
-            },
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: buildBackground([
+              Color.fromARGB(76, 33, 33, 33),
+              Color(0xFFFFFFFF),
+            ]),
+          ),
+          child: SafeArea(
+            child: OrientationBuilder(
+              builder: (BuildContext context, Orientation orientation) {
+                if (orientation == Orientation.portrait) {
+                  return buildPortraitLayout();
+                } else {
+                  return buildLandscapeLayout();
+                }
+              },
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget buildCover() {
-    return Align(
-      alignment: Alignment.center,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 40.0),
-        child: TrackCover(),
-      ),
+  Gradient buildBackground(List<Color> colors) {
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: colors,
     );
   }
 
   Widget buildPortraitLayout() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        buildCover(),
-        TrackInfo(),
-        PlayerButton(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(40.0, 60.0, 40.0, 48.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          TrackCover(),
+          Expanded(
+            child: TrackInfo(),
+          ),
+          PlayerButton(),
+        ],
+      ),
     );
   }
 
   Widget buildLandscapeLayout() {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        buildCover(),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              TrackInfo(),
-              SizedBox(height: 32.0),
-              PlayerButton(),
-            ],
+    return Padding(
+      padding: const EdgeInsets.all(40.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          TrackCover(),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                TrackInfo(),
+                SizedBox(height: 32.0),
+                PlayerButton(),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
