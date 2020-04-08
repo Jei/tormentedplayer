@@ -77,7 +77,7 @@ class Radio {
         AudioService.start(
           backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
           androidNotificationChannelName: 'Tormented Player',
-          notificationColor: 0xFF2196f3,
+          notificationColor: 0xFF212121,
           androidNotificationIcon: 'drawable/ic_notification_radio',
           enableQueue: false,
           androidStopForegroundOnPause: true,
