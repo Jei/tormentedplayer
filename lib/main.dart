@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/pages/home.dart';
+import 'package:tormentedplayer/theme/style.dart';
 
 void main() {
   // Set `enableInDevMode` to true to see reports while in debug mode
@@ -24,10 +25,6 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
-  final ThemeData theme = ThemeData(
-    brightness: Brightness.dark,
-    accentColor: Colors.redAccent,
-  );
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   @override
@@ -42,8 +39,9 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: theme,
-      darkTheme: theme,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      //darkTheme: theme,
       home: Provider<RadioBloc>(
         create: (_) => RadioBloc(),
         child: HomePage(),
