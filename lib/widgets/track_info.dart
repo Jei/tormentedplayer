@@ -7,6 +7,8 @@ class TrackInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     RadioBloc _bloc = Provider.of<RadioBloc>(context);
+    final ThemeData theme = Theme.of(context);
+    final TextTheme textTheme = theme.textTheme;
 
     return StreamBuilder<Track>(
       initialData: Track(),
@@ -24,8 +26,10 @@ class TrackInfo extends StatelessWidget {
                 alignment: Alignment.center,
                 height: 48.0,
                 child: Text(
-                  track?.title ?? '',
-                  style: Theme.of(context).textTheme.headline6,
+                  (track?.artist ?? '-').toUpperCase(),
+                  style: textTheme.subtitle1.merge(TextStyle(
+                    color: theme.accentColor,
+                  )),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                 ),
@@ -34,8 +38,20 @@ class TrackInfo extends StatelessWidget {
                 alignment: Alignment.center,
                 height: 48.0,
                 child: Text(
-                  track?.artist ?? '',
-                  style: Theme.of(context).textTheme.subtitle1,
+                  track?.title ?? '-',
+                  style: textTheme.headline5,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                height: 48.0,
+                child: Text(
+                  track?.album ?? '-',
+                  style: textTheme.subtitle1.merge(TextStyle(
+                    color: textTheme.subtitle1.color.withAlpha(138),
+                  )),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                 ),

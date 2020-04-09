@@ -7,9 +7,10 @@ class PlayerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     RadioBloc _bloc = Provider.of<RadioBloc>(context);
-    final color = Theme.of(context).primaryColorDark;
-    final highlight = Theme.of(context).primaryColor.withAlpha(30);
-    final splash = Theme.of(context).primaryColor.withAlpha(50);
+    final ThemeData theme = Theme.of(context);
+    final color = theme.accentColor;
+    final highlight = color.withAlpha(30);
+    final splash = color.withAlpha(50);
 
     return Material(
       color: Colors.transparent,
