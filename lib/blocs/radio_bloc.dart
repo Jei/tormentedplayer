@@ -17,10 +17,10 @@ class RadioBloc {
       Stream.value(null),
       Stream.periodic(Duration(seconds: 10)),
     ])
-        .where(_isAudioInactive)
+        .where(_canFetch)
         .switchMap((_) => Stream.fromFuture(_repository.fetchCurrentTrack()))
         // Check again for Audio activity, since the API call may complete later
-        .where(_isAudioInactive));
+        .where(_canFetch));
 
     // Merge with the stream from Radio, but emit only when the track changes
     _trackSubject.addStream(Rx.merge([
@@ -57,7 +57,9 @@ class RadioBloc {
     }
   }
 
-  static bool _isAudioInactive(_) => !_isAudioActive(_);
+  static bool _canFetch(_) {
+    return Radio.connected && !_isAudioActive(_);
+  }
 
   Stream<Track> get trackStream => _trackSubject.stream;
 

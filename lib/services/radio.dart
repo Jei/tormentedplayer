@@ -94,6 +94,8 @@ class Radio {
 
   static disconnect() => AudioService.disconnect();
 
+  static bool get connected => AudioService.connected;
+
   static Stream<RadioPlaybackState> get playbackStateStream =>
       AudioService.playbackStateStream.map(_audioToRadioPlaybackState);
 
