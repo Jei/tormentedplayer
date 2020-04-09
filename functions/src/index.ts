@@ -2,10 +2,6 @@ import * as functions from 'firebase-functions';
 import * as request from 'request-promise';
 import { OptionsWithUri } from 'request';
 import express = require('express');
-import DomParser = require('dom-parser');
-import * as he from 'he';
-
-const parser = new DomParser();
 
 const lastFMOptions: OptionsWithUri = {
   uri: 'https://ws.audioscrobbler.com/2.0',
@@ -18,13 +14,6 @@ const lastFMOptions: OptionsWithUri = {
     'User-Agent': 'TormentedPlayerAPI/1.0.0',
   },
   json: true,
-};
-
-const trStatusOptions: OptionsWithUri = {
-  uri: 'http://stream2.mpegradio.com:8070/7.html',
-  headers: {
-    'User-Agent': 'TormentedPlayerAPI/1.0.0',
-  },
 };
 
 class HttpError extends Error {
@@ -79,42 +68,6 @@ v1.get('/track', async (req, res, next) => {
     
     // Cache the response for 1 month
     res.set('Cache-Control', 'public, max-age=2592000');
-    res.json(track);
-  } catch(err) {
-    next(err);
-  }
-});
-
-// Get the current track from Tormented Radio and fetch additional info from LastFM
-v1.get('/track/current', async (_req, res, next) => {
-  try {
-    const trResponse: string = await request(trStatusOptions);
-    
-    const tags = parser.parseFromString(trResponse).getElementsByTagName('body');
-    const status = tags && tags.length ? he.decode(tags[0]?.textContent) : null;
-    
-    if (!status) {
-      throw new HttpError(503, 'Tormented Radio status data not found.');
-    }
-    
-    // Take the track's artist/title, considering that they could contain the ',' character
-    const currentSong = status.split(',').slice(6).join(',');
-    const [artist, title] = currentSong.split(' - ');
-    
-    // Get data from LastFM
-    const track = await getLastFMTrack(title, artist)
-    .catch((_) => {
-      // Ignore LastFM errors
-      return {
-        title,
-        artist,
-        album: null,
-        image: null,
-      }
-    });
-    
-    // Cache the response for 10 seconds
-    res.set('Cache-Control', 'public, max-age=10');
     res.json(track);
   } catch(err) {
     next(err);
