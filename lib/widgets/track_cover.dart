@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
@@ -23,18 +24,21 @@ class TrackCover extends StatelessWidget {
           child: AspectRatio(
             aspectRatio: 1,
             child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black45,
-                ),
-                child: src.isNotEmpty
-                    ? FadeInImage.memoryNetwork(
-                  image: src,
-                  placeholder: kTransparentImage,
-                  fit: BoxFit.cover,
-                )
-                    : null,
+              decoration: BoxDecoration(
+                color: Colors.black45,
               ),
+              child: src.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: src,
+                      placeholder: (context, url) =>
+                          Image.memory(kTransparentImage),
+                      errorWidget: (context, url, err) =>
+                          Image.memory(kTransparentImage),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
+          ),
         );
       },
     );

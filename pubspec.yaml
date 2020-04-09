@@ -28,6 +28,7 @@ dependencies:
       url: https://github.com/Jei/just_audio.git
       ref: icy-metadata
   audio_service: ^0.6.2
+  cached_network_image: ^2.0.0
   cloud_functions: ^0.4.2+3
   firebase_analytics: ^5.0.11
   firebase_core: ^0.4.4+3

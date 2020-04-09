@@ -191,7 +191,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
     if ((title ?? '').isEmpty || (artist ?? '').isEmpty) return;
 
     try {
-      print('fetching new data');
       Track fullTrack = await _repository.fetchTrack(title, artist);
 
       yield MediaItem(
