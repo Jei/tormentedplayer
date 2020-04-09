@@ -19,7 +19,7 @@ class TrackCover extends StatelessWidget {
 
         return Material(
           elevation: 4,
-          borderRadius: BorderRadius.circular(8.0),
+          borderRadius: BorderRadius.circular(4.0),
           clipBehavior: Clip.antiAlias,
           child: AspectRatio(
             aspectRatio: 1,

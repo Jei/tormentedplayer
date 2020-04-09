@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
+import 'package:tormentedplayer/widgets/background_gradient.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
@@ -60,34 +61,24 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return Future.value(true);
       },
       child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: buildBackground([
-              Color.fromARGB(76, 33, 33, 33),
-              Theme.of(context).scaffoldBackgroundColor,
-            ]),
-          ),
-          child: SafeArea(
-            child: OrientationBuilder(
-              builder: (BuildContext context, Orientation orientation) {
-                if (orientation == Orientation.portrait) {
-                  return buildPortraitLayout();
-                } else {
-                  return buildLandscapeLayout();
-                }
-              },
+        body: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            BackgroundGradient(),
+            SafeArea(
+              child: OrientationBuilder(
+                builder: (BuildContext context, Orientation orientation) {
+                  if (orientation == Orientation.portrait) {
+                    return buildPortraitLayout();
+                  } else {
+                    return buildLandscapeLayout();
+                  }
+                },
+              ),
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
-
-  Gradient buildBackground(List<Color> colors) {
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: colors,
     );
   }
 
