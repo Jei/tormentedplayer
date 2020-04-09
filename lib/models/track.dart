@@ -17,4 +17,25 @@ class Track {
       image: json['image'],
     );
   }
+
+  factory Track.fromFullTitle(String fullTitle) {
+    // Some tracks have no title/artist (they're probably jingles)
+    final emptyMatch = RegExp(r'^Empty Title$').firstMatch(fullTitle);
+
+    if (emptyMatch == null) {
+      final match = RegExp(r'^(.*) - (.*)$').firstMatch(fullTitle);
+
+      if (match != null) {
+        return Track(
+          title: match.group(2),
+          artist: match.group(1),
+        );
+      }
+    } else {
+      return Track();
+    }
+
+    // If it's not empty and it's not a valid track, throw parse error
+    throw Exception('Could not parse track from full title: $fullTitle');
+  }
 }
