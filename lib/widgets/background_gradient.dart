@@ -8,26 +8,39 @@ import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/models/track.dart';
 
 class BackgroundGradient extends StatelessWidget {
-  static final int _alpha = 74;
-  final Color _defaultColor = Color.fromARGB(_alpha, 33, 33, 33);
+  static final int _alpha = 128;
+  final Color _defaultColor = Color.fromARGB(255, 33, 33, 33);
 
   @override
   Widget build(BuildContext context) {
     RadioBloc _bloc = Provider.of<RadioBloc>(context);
+    var theme = Theme.of(context);
 
     return StreamBuilder<Color>(
-      initialData: _defaultColor,
+      initialData: _defaultColor.withAlpha(_alpha),
       stream: _bloc.trackStream.transform(StreamTransformer.fromHandlers(
         handleData: (Track track, EventSink<Color> sink) async {
-          // Get a palette from the current track's image
-          PaletteGenerator paletteGenerator =
-              await PaletteGenerator.fromImageProvider(
-                  CachedNetworkImageProvider(track.image));
+          try {
+            // Get a palette from the current track's image
+            PaletteGenerator paletteGenerator =
+                await PaletteGenerator.fromImageProvider(
+                    CachedNetworkImageProvider(track.image));
 
-          // TODO choose color depending on current theme
-          sink.add(paletteGenerator.vibrantColor?.color ??
-              paletteGenerator.darkVibrantColor?.color ??
-              _defaultColor);
+            if (theme.brightness == Brightness.light) {
+              sink.add((paletteGenerator.vibrantColor?.color ??
+                      paletteGenerator.lightVibrantColor?.color ??
+                      _defaultColor)
+                  .withAlpha(_alpha));
+            } else {
+              sink.add((paletteGenerator.vibrantColor?.color ??
+                      paletteGenerator.darkVibrantColor?.color ??
+                      _defaultColor)
+                  .withAlpha(_alpha));
+            }
+          } catch (err) {
+            // Use default color
+            sink.add(_defaultColor);
+          }
         },
         handleError: (obj, trace, EventSink<Color> sink) {
           sink.add(_defaultColor);
@@ -40,7 +53,7 @@ class BackgroundGradient extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                snapshot.data ?? _defaultColor,
+                snapshot.data ?? _defaultColor.withAlpha(_alpha),
                 Theme.of(context).scaffoldBackgroundColor,
               ],
             ),
