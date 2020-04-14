@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:marquee_widget/marquee_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/models/track.dart';
@@ -24,36 +25,42 @@ class TrackInfo extends StatelessWidget {
             children: <Widget>[
               Container(
                 alignment: Alignment.center,
-                height: 48.0,
-                child: Text(
-                  (track?.artist ?? '-').toUpperCase(),
-                  style: textTheme.subtitle1.merge(TextStyle(
-                    color: theme.accentColor,
-                  )),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
+                height: 32.0,
+                child: Marquee(
+                  child: Text(
+                    (track?.artist ?? '-').toUpperCase(),
+                    style: textTheme.subtitle1.merge(TextStyle(
+                      color: theme.accentColor,
+                    )),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
                 ),
               ),
               Container(
                 alignment: Alignment.center,
-                height: 48.0,
-                child: Text(
-                  track?.title ?? '-',
-                  style: textTheme.headline5,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
+                height: 40.0,
+                child: Marquee(
+                  child: Text(
+                    track?.title ?? '-',
+                    style: textTheme.headline5,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                  ),
                 ),
               ),
               Container(
                 alignment: Alignment.center,
-                height: 48.0,
-                child: Text(
-                  track?.album ?? '-',
-                  style: textTheme.subtitle1.merge(TextStyle(
-                    color: textTheme.subtitle1.color.withAlpha(138),
-                  )),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
+                height: 32.0,
+                child: Marquee(
+                  child: Text(
+                    track?.album ?? '-',
+                    style: textTheme.subtitle1.merge(TextStyle(
+                      color: textTheme.subtitle1.color.withAlpha(138),
+                    )),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
                 ),
               ),
             ],
