@@ -93,7 +93,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildPortraitLayout() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(40.0, 0.0, 40.0, 48.0),
+      padding: const EdgeInsets.fromLTRB(40.0, 0.0, 40.0, 40.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -109,7 +109,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildLandscapeLayout() {
     return Padding(
-      padding: const EdgeInsets.all(40.0),
+      padding: const EdgeInsets.fromLTRB(40.0, 0.0, 40.0, 40.0),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
