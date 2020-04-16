@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/widgets/background_gradient.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
+import 'package:tormentedplayer/widgets/theme_mode_button.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
@@ -61,6 +62,14 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
         return Future.value(true);
       },
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0.0,
+          actions: <Widget>[
+            ThemeModeButton(),
+          ],
+        ),
+        extendBodyBehindAppBar: true,
         body: Stack(
           fit: StackFit.expand,
           children: <Widget>[
@@ -84,7 +93,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget buildPortraitLayout() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(40.0, 60.0, 40.0, 48.0),
+      padding: const EdgeInsets.fromLTRB(40.0, 0.0, 40.0, 48.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[

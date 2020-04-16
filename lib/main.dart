@@ -7,6 +7,8 @@ import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/pages/home.dart';
 import 'package:tormentedplayer/theme/style.dart';
 
+import 'models/app_theme_mode.dart';
+
 void main() {
   // Set `enableInDevMode` to true to see reports while in debug mode
   // This is only to be used for confirming that reports are being
@@ -37,18 +39,25 @@ class MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      //darkTheme: theme,
-      home: Provider<RadioBloc>(
-        create: (_) => RadioBloc(),
-        child: HomePage(),
+    return ChangeNotifierProvider<AppThemeMode>(
+      create: (context) => AppThemeMode(),
+      child: Consumer(
+        builder: (context, AppThemeMode appMode, child) {
+          return MaterialApp(
+            title: 'Tormented Player',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: appMode?.currentMode ?? ThemeMode.system,
+            home: Provider<RadioBloc>(
+              create: (_) => RadioBloc(),
+              child: HomePage(),
+            ),
+            navigatorObservers: [
+              FirebaseAnalyticsObserver(analytics: analytics),
+            ],
+          );
+        },
       ),
-      navigatorObservers: [
-        FirebaseAnalyticsObserver(analytics: analytics),
-      ],
     );
   }
 }
