@@ -39,11 +39,11 @@ class BackgroundGradient extends StatelessWidget {
             }
           } catch (err) {
             // Use default color
-            sink.add(_defaultColor);
+            sink.add(_defaultColor.withAlpha(_alpha));
           }
         },
         handleError: (obj, trace, EventSink<Color> sink) {
-          sink.add(_defaultColor);
+          sink.add(_defaultColor.withAlpha(_alpha));
         },
       )),
       builder: (context, snapshot) {
