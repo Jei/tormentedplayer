@@ -2,6 +2,7 @@ import 'package:http/http.dart' show Client, Response;
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:tormentedplayer/models/track.dart';
+import 'package:tormentedplayer/services/api.dart';
 import 'package:tormentedplayer/services/tormentedradio.dart';
 
 class MockClient extends Mock implements Client {}
@@ -89,7 +90,7 @@ main() {
         expect(response.album, null);
       });
 
-      test('Throws exception on error response', () async {
+      test('Throws exception on error response', () {
         final client = MockClient();
         final tr = TormentedRadio(client);
 
@@ -97,6 +98,76 @@ main() {
             .thenAnswer((_) async => Response('Internal server error', 500));
 
         expect(tr.getCurrentTrack(), throwsException);
+      });
+    });
+  });
+
+  group('Api service', () {
+    group('getTrackInfo tests', () {
+      test('Should return a Track on success', () async {
+        final client = MockClient();
+        final api = Api(client);
+
+        when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
+          'title': 'Destiny Sunrise',
+          'artist': 'Syrian'
+        }))).thenAnswer((_) async => Response(
+            '{"title":"Destiny Sunrise","artist":"Syrian","album":"Alien Nation","image":"https://lastfm.freetls.fastly.net/i/u/300x300/8bee9373caa042dcabc57723e09b26ee.png"}',
+            200));
+
+        var response = await api.getTrackInfo('Destiny Sunrise', 'Syrian');
+        expect(response, TypeMatcher<Track>());
+        expect(response.title, 'Destiny Sunrise');
+        expect(response.artist, 'Syrian');
+        expect(response.album, 'Alien Nation');
+        expect(response.image,
+            'https://lastfm.freetls.fastly.net/i/u/300x300/8bee9373caa042dcabc57723e09b26ee.png');
+      });
+
+      test('Returns a Track when album and image are missing from the response',
+          () async {
+        final client = MockClient();
+        final api = Api(client);
+
+        when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
+          'title': 'Destiny Sunrise',
+          'artist': 'Syrian'
+        }))).thenAnswer((_) async => Response(
+            '{"title":"Destiny Sunrise","artist":"Syrian","album":null,"image":null}',
+            200));
+
+        var response = await api.getTrackInfo('Destiny Sunrise', 'Syrian');
+        expect(response, TypeMatcher<Track>());
+        expect(response.title, 'Destiny Sunrise');
+        expect(response.artist, 'Syrian');
+        expect(response.album, null);
+        expect(response.image, null);
+      });
+
+      test('Throws exception on invalid data', () {
+        final client = MockClient();
+        final api = Api(client);
+
+        when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
+          'title': 'Destiny Sunrise',
+          'artist': 'Syrian'
+        }))).thenAnswer(
+            (_) async => Response('Not what you were expecting', 200));
+
+        expect(api.getTrackInfo('Destiny Sunrise', 'Syrian'), throwsException);
+      });
+
+      test('Throws exception on error response', () {
+        final client = MockClient();
+        final api = Api(client);
+
+        when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
+          'title': 'Destiny Sunrise',
+          'artist': 'Syrian'
+        }))).thenAnswer((_) async =>
+            Response('{"status":404,"message":"Track not found"}', 404));
+
+        expect(api.getTrackInfo('Destiny Sunrise', 'Syrian'), throwsException);
       });
     });
   });
