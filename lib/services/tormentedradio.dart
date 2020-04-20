@@ -1,12 +1,15 @@
-import 'package:http/http.dart';
+import 'package:http/http.dart' show Client, Response;
 import 'package:html/parser.dart';
 import 'package:html/dom.dart';
 import 'package:tormentedplayer/models/history_item.dart';
 import 'package:tormentedplayer/models/track.dart';
 
 class TormentedRadio {
+  final Client client;
   final String _historyUrl = 'http://stream2.mpegradio.com:8070/played.html';
   final String _statsUrl = 'http://stream2.mpegradio.com:8070/stats';
+
+  TormentedRadio(this.client);
 
   static Track _parseStats(String body) {
     List<Element> tags = parse(body).getElementsByTagName('SONGTITLE');
@@ -37,7 +40,7 @@ class TormentedRadio {
   }
 
   Future<List<HistoryItem>> getHistory() async {
-    Response response = await get(_historyUrl);
+    Response response = await client.get(_historyUrl);
 
     if (response.statusCode == 200) {
       return _parseHistory(response.body);
@@ -49,7 +52,7 @@ class TormentedRadio {
 
   Future<Track> getCurrentTrack() async {
     // TODO solve UTF-8 encoding problem
-    Response response = await get(_statsUrl);
+    Response response = await client.get(_statsUrl);
 
     if (response.statusCode == 200) {
       return _parseStats(response.body);

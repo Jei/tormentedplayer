@@ -3,8 +3,12 @@ import 'package:tormentedplayer/services/api.dart';
 import 'package:tormentedplayer/services/tormentedradio.dart';
 
 class Repository {
-  final Api _api = Api();
-  final TormentedRadio _tormentedRadio = TormentedRadio();
+  final Api _api;
+  final TormentedRadio _tormentedRadio;
+
+  Repository(client)
+      : _api = Api(client),
+        _tormentedRadio = TormentedRadio(client);
 
   Future<Track> fetchTrack(String title, String artist) =>
       _api.getTrackInfo(title, artist);

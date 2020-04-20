@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:http/http.dart' show Client;
 import 'package:rxdart/rxdart.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
@@ -116,7 +117,7 @@ void audioPlayerTaskEntryPoint() async {
 
 class AudioPlayerTask extends BackgroundAudioTask {
   AudioPlayer _audioPlayer = AudioPlayer();
-  Repository _repository = Repository();
+  Repository _repository = Repository(Client());
   StreamSubscription<AudioPlaybackEvent> _eventSubscription;
   StreamSubscription<MediaItem> _mediaItemSubscription;
   final String _url = 'http://stream2.mpegradio.com:8070/tormented.mp3';

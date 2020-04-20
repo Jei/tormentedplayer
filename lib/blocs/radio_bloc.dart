@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:http/http.dart' show Client;
 import 'package:rxdart/rxdart.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/resources/repository.dart';
 import 'package:tormentedplayer/services/radio.dart';
 
 class RadioBloc {
-  Repository _repository = Repository();
+  Repository _repository = Repository(Client());
 
   final BehaviorSubject<Track> _apiTrackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _trackSubject = BehaviorSubject<Track>();
