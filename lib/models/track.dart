@@ -19,6 +19,9 @@ class Track {
   }
 
   factory Track.fromFullTitle(String fullTitle) {
+    if (fullTitle?.isEmpty ?? true) {
+      return Track();
+    }
     // Some tracks have no title/artist (they're probably jingles)
     final emptyMatch = RegExp(r'^Empty Title$').firstMatch(fullTitle);
 

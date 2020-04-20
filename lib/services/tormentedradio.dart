@@ -17,7 +17,9 @@ class TormentedRadio {
       throw Exception('Invalid Tormented Radio stats XML data');
     }
 
-    return Track.fromFullTitle(tags[0].nodes[0]?.text);
+    Node node = tags[0].nodes.isNotEmpty ? tags[0].nodes[0] : null;
+
+    return Track.fromFullTitle(node?.text);
   }
 
   static List<HistoryItem> _parseHistory(String body) {
