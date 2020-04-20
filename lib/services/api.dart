@@ -30,16 +30,4 @@ class Api {
       throw Exception('Could not get track info: ${response.body}');
     }
   }
-
-  Future<Track> getCurrentTrack() async {
-    Response response = await _get('/track/current');
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> json = await jsonDecode(response.body);
-
-      return Track.fromJson(json);
-    } else {
-      throw Exception('Could not get track info: ${response.body}');
-    }
-  }
 }
