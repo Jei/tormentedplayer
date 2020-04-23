@@ -27,6 +27,11 @@ class SettingsPage extends StatelessWidget {
           ],
           onChange: appThemeMode.setModeFromIndex,
         ),
+        ListTile(
+          title: Text('About this app'),
+          onTap: () => showLicensePage(context: context),
+          trailing: Icon(Icons.chevron_right),
+        ),
       ]),
     );
   }
