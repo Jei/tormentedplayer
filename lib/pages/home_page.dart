@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
+import 'package:tormentedplayer/pages/settings_page.dart';
 import 'package:tormentedplayer/widgets/background_gradient.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
-import 'package:tormentedplayer/widgets/theme_mode_button.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
 class HomePage extends StatefulWidget {
+  static final String routeName = '/home';
+
   @override
   State<StatefulWidget> createState() => HomePageState();
 }
@@ -66,7 +68,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver {
           backgroundColor: Colors.transparent,
           elevation: 0.0,
           actions: <Widget>[
-            ThemeModeButton(),
+            IconButton(
+              icon: Icon(Icons.settings),
+              color: Theme.of(context).iconTheme.color,
+              onPressed: () =>
+                  Navigator.pushNamed(context, SettingsPage.routeName),
+            )
           ],
         ),
         extendBodyBehindAppBar: true,
