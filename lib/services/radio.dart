@@ -254,7 +254,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   @override
   void onStop() {
-    print('STOPPING');
     _audioPlayer.stop();
     _setState(BasicPlaybackState.stopped);
     _eventSubscription.cancel();
