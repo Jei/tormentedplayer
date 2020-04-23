@@ -23,7 +23,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
-  just_audio: ^0.1.7
+  just_audio:
+    git:
+      url: https://github.com/Jei/just_audio
+      ref: exoplayer-errors-stream
   audio_service: ^0.7.2
   cached_network_image: ^2.0.0
   cloud_functions: ^0.4.2+3

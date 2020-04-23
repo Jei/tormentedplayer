@@ -215,9 +215,11 @@ packages:
   just_audio:
     dependency: "direct main"
     description:
-      name: just_audio
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: exoplayer-errors-stream
+      resolved-ref: b4a96289726b80da1bca4c261e68fdf2d4aceb19
+      url: "https://github.com/Jei/just_audio"
+    source: git
     version: "0.1.7"
   marquee_widget:
     dependency: "direct main"
