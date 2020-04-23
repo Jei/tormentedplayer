@@ -201,7 +201,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
         artUri: fullTrack.image,
       );
     } catch (err) {
-      print(err);
+      print('Error while fetching current track\'s info: $err');
     }
   }
 
@@ -209,7 +209,11 @@ class AudioPlayerTask extends BackgroundAudioTask {
   Future<void> onStart() async {
     // Subscribe to AudioPlayer events
     // Playback state events
-    _eventSubscription = _audioPlayer.playbackEventStream.listen((event) {
+    _eventSubscription =
+        _audioPlayer.playbackEventStream.handleError((err, stack) {
+      print('Error during playback: $err; $stack');
+      onStop();
+    }).listen((event) {
       final state = _stateToBasicState(event.state);
       if (state != BasicPlaybackState.stopped) {
         _setState(state);
@@ -219,13 +223,21 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
     // Icy metadata events
     _mediaItemSubscription = _audioPlayer.icyMetadataStream
-    .distinct((prev, next) => prev.info?.title == next.info?.title)
+        .handleError((err, stack) {
+          /* noop */
+        })
+        .distinct((prev, next) => prev.info?.title == next.info?.title)
         .switchMap(_mediaItemStream)
         .listen(AudioServiceBackground.setMediaItem);
 
-    await _audioPlayer.setUrl(_url);
-    // Start playing immediately
-    onPlay();
+    try {
+      await _audioPlayer.setUrl(_url);
+      // Start playing immediately
+      onPlay();
+    } catch (err) {
+      print('Error while connecting to the URL: $err');
+      onStop();
+    }
     await _completer.future;
   }
 
@@ -241,6 +253,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   @override
   void onStop() {
+    print('STOPPING');
     _audioPlayer.stop();
     _setState(BasicPlaybackState.stopped);
     _eventSubscription.cancel();

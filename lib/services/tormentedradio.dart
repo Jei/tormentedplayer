@@ -48,6 +48,7 @@ class TormentedRadio {
   }
 
   Future<Track> getCurrentTrack() async {
+    // TODO solve UTF-8 encoding problem
     Response response = await get(_statsUrl);
 
     if (response.statusCode == 200) {
