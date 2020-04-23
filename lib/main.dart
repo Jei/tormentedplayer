@@ -31,25 +31,60 @@ class MyApp extends StatefulWidget {
   State<StatefulWidget> createState() => MyAppState();
 }
 
-class MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  RadioBloc _radioBloc = RadioBloc();
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   @override
   void initState() {
     analytics.logAppOpen();
+    _radioBloc.connectToRadio();
+
+    WidgetsBinding.instance.addObserver(this);
 
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _radioBloc.disconnectFromRadio();
+    _radioBloc.dispose();
+
+    WidgetsBinding.instance.removeObserver(this);
+
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        _radioBloc?.disconnectFromRadio();
+        break;
+      case AppLifecycleState.resumed:
+        _radioBloc?.connectToRadio();
+        break;
+      default:
+        break;
+    }
   }
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<AppThemeMode>(
-      create: (context) => AppThemeMode(
-        initialValue: ThemeMode.values[PrefService.getInt('theme') ?? 0],
-      ),
-      child: Consumer(
-        builder: (context, AppThemeMode appMode, child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppThemeMode>(
+          create: (context) => AppThemeMode(
+            initialValue: ThemeMode.values[PrefService.getInt('theme') ?? 0],
+          ),
+        ),
+        Provider<RadioBloc>.value(
+          value: _radioBloc,
+        ),
+      ],
+      child: Consumer2<AppThemeMode, RadioBloc>(
+        builder: (context, appMode, radioBloc, child) {
           return MaterialApp(
             title: 'Tormented Player',
             theme: lightTheme,
@@ -60,8 +95,11 @@ class MyAppState extends State<MyApp> {
             ],
             initialRoute: HomePage.routeName,
             routes: {
-              HomePage.routeName: (context) => Provider<RadioBloc>(
-                    create: (_) => RadioBloc(),
+              HomePage.routeName: (context) => WillPopScope(
+                    onWillPop: () {
+                      radioBloc?.disconnectFromRadio();
+                      return Future.value(true);
+                    },
                     child: HomePage(),
                   ),
               SettingsPage.routeName: (context) => SettingsPage(),

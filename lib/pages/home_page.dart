@@ -1,99 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/pages/settings_page.dart';
 import 'package:tormentedplayer/widgets/background_gradient.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   static final String routeName = '/home';
 
   @override
-  State<StatefulWidget> createState() => HomePageState();
-}
-
-class HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  RadioBloc _bloc;
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    _bloc = Provider.of<RadioBloc>(context);
-    _bloc.connectToRadio();
-  }
-
-  @override
-  void dispose() {
-    _bloc.disconnectFromRadio();
-    _bloc.dispose();
-
-    WidgetsBinding.instance.removeObserver(this);
-
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        _bloc?.disconnectFromRadio();
-        break;
-      case AppLifecycleState.resumed:
-        _bloc?.connectToRadio();
-        break;
-      default:
-        break;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () {
-        _bloc?.disconnectFromRadio();
-        return Future.value(true);
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0.0,
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.settings),
-              color: Theme.of(context).iconTheme.color,
-              onPressed: () =>
-                  Navigator.pushNamed(context, SettingsPage.routeName),
-            )
-          ],
-        ),
-        extendBodyBehindAppBar: true,
-        body: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            BackgroundGradient(),
-            SafeArea(
-              child: OrientationBuilder(
-                builder: (BuildContext context, Orientation orientation) {
-                  if (orientation == Orientation.portrait) {
-                    return buildPortraitLayout();
-                  } else {
-                    return buildLandscapeLayout();
-                  }
-                },
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.settings),
+            color: Theme.of(context).iconTheme.color,
+            onPressed: () =>
+                Navigator.pushNamed(context, SettingsPage.routeName),
+          )
+        ],
+      ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          BackgroundGradient(),
+          SafeArea(
+            child: OrientationBuilder(
+              builder: (BuildContext context, Orientation orientation) {
+                if (orientation == Orientation.portrait) {
+                  return buildPortraitLayout();
+                } else {
+                  return buildLandscapeLayout();
+                }
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
