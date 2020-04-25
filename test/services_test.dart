@@ -8,6 +8,7 @@ import 'package:tormentedplayer/services/tormentedradio.dart';
 class MockClient extends Mock implements Client {}
 
 main() {
+  // services/tormentedradio.dart
   group('TormentedRadio service', () {
     group('getCurrentTrack tests', () {
       test('Returns a Track with title and artist on success', () async {
@@ -102,6 +103,7 @@ main() {
     });
   });
 
+  // services/api.dart
   group('Api service', () {
     group('getTrackInfo tests', () {
       test('Should return a Track on success', () async {

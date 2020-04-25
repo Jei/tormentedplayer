@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' show Client;
 import 'package:rxdart/rxdart.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/resources/repository.dart';
@@ -18,101 +19,37 @@ MediaControl pauseControl = MediaControl(
   androidIcon: 'drawable/ic_pause_black',
 );
 
-enum RadioPlaybackState {
-  none,
-  stopped,
-  paused,
-  playing,
-  buffering,
-  error,
-  connecting,
-}
-
-// Foreground methods
-class Radio {
-  static RadioPlaybackState _audioToRadioPlaybackState(PlaybackState state) {
-    BasicPlaybackState basicState = state?.basicState;
-
-    switch (basicState) {
-      case BasicPlaybackState.error:
-        return RadioPlaybackState.error;
-      case BasicPlaybackState.stopped:
-        return RadioPlaybackState.stopped;
-      case BasicPlaybackState.paused:
-        return RadioPlaybackState.paused;
-      case BasicPlaybackState.playing:
-        return RadioPlaybackState.playing;
-      case BasicPlaybackState.buffering:
-        return RadioPlaybackState.buffering;
-      case BasicPlaybackState.connecting:
-        return RadioPlaybackState.connecting;
-      case BasicPlaybackState.fastForwarding:
-      case BasicPlaybackState.rewinding:
-      case BasicPlaybackState.skippingToPrevious:
-      case BasicPlaybackState.skippingToNext:
-      case BasicPlaybackState.skippingToQueueItem:
-        throw Exception('Unsupported AudioService state');
-      default:
-        return RadioPlaybackState.none;
-    }
-  }
-
-  static Track _mediaItemToTrack(MediaItem item) => Track(
-      title: item?.title,
-      artist: item?.artist,
-      album: (item?.album ?? '').isEmpty ? null : item.album,
-      image: (item?.artUri ?? '').isEmpty ? null : item.artUri);
-
-  static start() {
-    BasicPlaybackState state =
-        AudioService.playbackState?.basicState ?? BasicPlaybackState.none;
-
-    // TODO handle BasicPlaybackState.error case differently
-    switch (state) {
-      case BasicPlaybackState.paused:
-        AudioService.play();
-        break;
-      case BasicPlaybackState.none:
-      case BasicPlaybackState.stopped:
-      case BasicPlaybackState.error:
-        AudioService.start(
-          backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
-          androidNotificationChannelName: 'Tormented Player',
-          notificationColor: 0xFF212121,
-          androidNotificationIcon: 'drawable/ic_notification_radio',
-          enableQueue: false,
-          androidStopForegroundOnPause: true,
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
-  static stop() => AudioService.stop();
-
-  static connect() => AudioService.connect();
-
-  static disconnect() => AudioService.disconnect();
-
-  static bool get connected => AudioService.connected;
-
-  static Stream<RadioPlaybackState> get playbackStateStream =>
-      AudioService.playbackStateStream.map(_audioToRadioPlaybackState);
-
-  static RadioPlaybackState get playbackState =>
-      _audioToRadioPlaybackState(AudioService.playbackState);
-
-  static Stream<Track> get currentTrackStream =>
-      AudioService.currentMediaItemStream.map(_mediaItemToTrack);
-
-  static Track get currentTrack =>
-      _mediaItemToTrack(AudioService.currentMediaItem);
-}
-
-// Background task code
 void audioPlayerTaskEntryPoint() async {
   AudioServiceBackground.run(() => AudioPlayerTask());
+}
+
+// This is just a wrapper for AudioService to simplify testing
+// See https://github.com/mockito/mockito/issues/1013
+class AudioClient {
+  Future<void> play() => AudioService.play();
+
+  Future<bool> start() => AudioService.start(
+        backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
+        androidNotificationChannelName: 'Tormented Player',
+        notificationColor: 0xFF212121,
+        androidNotificationIcon: 'drawable/ic_notification_radio',
+        enableQueue: false,
+        androidStopForegroundOnPause: true,
+      );
+
+  Future<void> stop() => AudioService.stop();
+
+  bool get connected => AudioService.connected;
+
+  PlaybackState get playbackState => AudioService.playbackState;
+
+  Stream<PlaybackState> get playbackStateStream =>
+      AudioService.playbackStateStream;
+
+  Stream<MediaItem> get currentMediaItemStream =>
+      AudioService.currentMediaItemStream;
+
+  MediaItem get currentMediaItem => AudioService.currentMediaItem;
 }
 
 class AudioPlayerTask extends BackgroundAudioTask {
@@ -161,7 +98,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
     );
   }
 
-  static List<String> _parseIcyTitle(String title) {
+  List<String> _parseIcyTitle(String title) {
     if (title == null) return [null, null];
     final RegExp matcher = RegExp(r'^(.*) - (.*)$');
     final match = matcher.firstMatch(title);
@@ -210,23 +147,22 @@ class AudioPlayerTask extends BackgroundAudioTask {
   Future<void> onStart() async {
     // Subscribe to AudioPlayer events
     // Playback state events
-    _eventSubscription =
-        _audioPlayer.playbackEventStream.handleError((err, stack) {
-      print('Error during playback: $err; $stack');
-      onStop();
-    }).listen((event) {
-      final state = _stateToBasicState(event.state);
-      if (state != BasicPlaybackState.stopped) {
+    _eventSubscription = _audioPlayer.playbackEventStream.listen(
+      (event) {
+        final state = _stateToBasicState(event.state);
+        if (state != BasicPlaybackState.stopped) {
+          _setState(state);
+        }
         _setState(state);
-      }
-      _setState(state);
-    });
+      },
+      onError: (err, stack) {
+        print('Error during playback: $err; $stack');
+        onError();
+      },
+    );
 
     // Icy metadata events
     _mediaItemSubscription = _audioPlayer.icyMetadataStream
-        .handleError((err, stack) {
-          /* noop */
-        })
         .distinct((prev, next) => prev.info?.title == next.info?.title)
         .switchMap(_mediaItemStream)
         .listen(AudioServiceBackground.setMediaItem);
@@ -237,7 +173,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
       onPlay();
     } catch (err) {
       print('Error while connecting to the URL: $err');
-      onStop();
+      onError();
     }
     await _completer.future;
   }
@@ -256,6 +192,14 @@ class AudioPlayerTask extends BackgroundAudioTask {
   void onStop() {
     _audioPlayer.stop();
     _setState(BasicPlaybackState.stopped);
+    _eventSubscription.cancel();
+    _mediaItemSubscription.cancel();
+    _completer.complete();
+  }
+
+  void onError() {
+    _audioPlayer.stop();
+    _setState(BasicPlaybackState.error);
     _eventSubscription.cancel();
     _mediaItemSubscription.cancel();
     _completer.complete();
