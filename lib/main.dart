@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -31,42 +32,22 @@ class MyApp extends StatefulWidget {
   State<StatefulWidget> createState() => MyAppState();
 }
 
-class MyAppState extends State<MyApp> with WidgetsBindingObserver {
+class MyAppState extends State<MyApp> {
   RadioBloc _radioBloc = RadioBloc();
   final FirebaseAnalytics analytics = FirebaseAnalytics();
 
   @override
   void initState() {
     analytics.logAppOpen();
-    _radioBloc.connectToRadio();
-
-    WidgetsBinding.instance.addObserver(this);
 
     super.initState();
   }
 
   @override
   void dispose() {
-    _radioBloc.disconnectFromRadio();
     _radioBloc.dispose();
 
-    WidgetsBinding.instance.removeObserver(this);
-
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        _radioBloc?.disconnectFromRadio();
-        break;
-      case AppLifecycleState.resumed:
-        _radioBloc?.connectToRadio();
-        break;
-      default:
-        break;
-    }
   }
 
   // This widget is the root of your application.
@@ -95,11 +76,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ],
             initialRoute: HomePage.routeName,
             routes: {
-              HomePage.routeName: (context) => WillPopScope(
-                    onWillPop: () {
-                      radioBloc?.disconnectFromRadio();
-                      return Future.value(true);
-                    },
+              HomePage.routeName: (context) => AudioServiceWidget(
                     child: HomePage(),
                   ),
               SettingsPage.routeName: (context) => SettingsPage(),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
-import 'package:tormentedplayer/services/radio.dart';
+import 'package:tormentedplayer/resources/radio.dart';
 
 class PlayerButton extends StatelessWidget {
   @override
