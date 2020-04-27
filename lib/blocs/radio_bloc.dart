@@ -43,6 +43,7 @@ class RadioBloc {
             handleError: (err, trace, sink) {
               print('Error while getting the current track: $err');
               sink.add(Track());
+              throw(err);
             },
           ))
           .distinct(_compareTracks),
