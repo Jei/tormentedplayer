@@ -12,7 +12,6 @@ class TrackCover extends StatelessWidget {
     RadioBloc _bloc = Provider.of<RadioBloc>(context);
 
     return StreamBuilder<Track>(
-      initialData: Track(),
       stream: _bloc.trackStream,
       builder: (context, snapshot) {
         String src = snapshot.data?.image ?? '';
