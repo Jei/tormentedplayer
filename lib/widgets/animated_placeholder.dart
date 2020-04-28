@@ -20,10 +20,19 @@ class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
     with SingleTickerProviderStateMixin {
   AnimationController _controller;
   Animation _gradientPosition;
+  Color _lightColor;
+  Color _darkColor;
 
   @override
   void initState() {
     super.initState();
+
+    HSVColor hsv = HSVColor.fromColor(widget.color);
+    hsv = hsv.withValue(hsv.value.clamp(0.0, 0.9));
+    _darkColor = hsv.toColor();
+    _lightColor = hsv
+        .withValue((hsv.value + 0.1).clamp(0.0, 1.0))
+        .toColor();
 
     _controller = AnimationController(
       vsync: this,
@@ -50,14 +59,6 @@ class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
 
   @override
   Widget build(BuildContext context) {
-    HSLColor hslColor = HSLColor.fromColor(widget.color);
-    hslColor =
-        hslColor.withSaturation((hslColor.saturation - 0.2).clamp(0.2, 1));
-    final darkColor = hslColor.toColor();
-    final lightColor = hslColor
-        .withLightness((hslColor.lightness - 0.1).clamp(0.0, 1.0))
-        .toColor();
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(4.0),
       child: Container(
@@ -66,9 +67,9 @@ class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              darkColor,
-              lightColor,
-              darkColor,
+              _darkColor,
+              _lightColor,
+              _darkColor,
             ],
             begin: Alignment(_gradientPosition.value - 1, 0),
             end: Alignment(_gradientPosition.value, 0),
