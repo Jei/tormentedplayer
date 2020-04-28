@@ -17,7 +17,7 @@ class TrackCover extends StatelessWidget {
         aspectRatio: 1,
         child: DecoratedBox(
           decoration: const BoxDecoration(
-            color: Color(0xff1c1c1c),
+            color: Colors.black45,
           ),
           child: StreamBuilder<Track>(
               stream: _bloc.trackStream,
@@ -52,7 +52,7 @@ class CoverPlaceholder extends StatelessWidget {
         return Icon(
           Icons.album,
           size: constraints.biggest.shortestSide - 48,
-          color: Color(0xff353535),
+          color: Colors.white12,
         );
       },
     );
