@@ -27,12 +27,12 @@ class TrackInfo extends StatelessWidget {
                     width: 120.0,
                     color: theme.accentColor,
                   ),
-                  SizedBox(height: 8.0),
+                  const SizedBox(height: 8.0),
                   AnimatedPlaceholder(
                     height: 40.0,
                     color: textTheme.headline5.color,
                   ),
-                  SizedBox(height: 8.0),
+                  const SizedBox(height: 8.0),
                   AnimatedPlaceholder(
                     height: 32.0,
                     width: 160.0,
@@ -58,14 +58,14 @@ class TrackInfo extends StatelessWidget {
                   color: theme.accentColor,
                 )),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               InfoText(
                 track.title,
                 height: 40.0,
                 style: textTheme.headline5,
                 upperCase: false,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               InfoText(
                 track.album,
                 height: 32.0,
@@ -103,7 +103,7 @@ class InfoText extends StatelessWidget {
       height: height,
       child: Marquee(
         child: Text(
-          upperCase ? (text ?? '-').toUpperCase() : (text ?? '-'),
+          text != null ? (upperCase ? text.toUpperCase() : text) : '-',
           style: style,
           textAlign: TextAlign.center,
           maxLines: 1,

@@ -74,7 +74,7 @@ class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
             begin: Alignment(_gradientPosition.value - 1, 0),
             end: Alignment(_gradientPosition.value, 0),
             stops: [0, 0.5, 1],
-            transform: GradientRotation(0.3),
+            transform: const GradientRotation(0.3),
           ),
         ),
       ),
