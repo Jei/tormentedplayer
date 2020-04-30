@@ -100,6 +100,26 @@ main() {
 
         expect(tr.getCurrentTrack(), throwsException);
       });
+
+      test('Handles UTF-8 characters', () async {
+        final client = MockClient();
+        final tr = TormentedRadio(client);
+
+        when(client.get('http://stream2.mpegradio.com:8070/stats'))
+            .thenAnswer((_) async => Response('''<SHOUTCASTSERVER>
+<SERVERURL>http://www.tormentedradio.com</SERVERURL>
+<SERVERTITLE>-=- tormented radio -=- streaming since 1998</SERVERTITLE>
+<SONGTITLE>Aïboforcen - Dédale</SONGTITLE>
+<VERSION>2.5.5.733 (posix(linux x64))</VERSION>
+</SHOUTCASTSERVER>''', 200));
+
+        var response = await tr.getCurrentTrack();
+        expect(response, TypeMatcher<Track>());
+        expect(response.title, 'Dédale');
+        expect(response.artist, 'Aïboforcen');
+        expect(response.image, null);
+        expect(response.album, null);
+      });
     });
   });
 
@@ -165,11 +185,30 @@ main() {
 
         when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
           'title': 'Destiny Sunrise',
-          'artist': 'Syrian'
+          'artist': 'Syrian',
         }))).thenAnswer((_) async =>
             Response('{"status":404,"message":"Track not found"}', 404));
 
         expect(api.getTrackInfo('Destiny Sunrise', 'Syrian'), throwsException);
+      });
+
+      test('Handles UTF-8 characters', () async {
+        final client = MockClient();
+        final api = Api(client);
+
+        when(client.get(Uri.https('tormented-player.web.app', '/api/v1/track', {
+          'title': 'Dédale',
+          'artist': 'Aïboforcen',
+        }))).thenAnswer((_) async => Response(
+            '{"title":"Dédale","artist":"Aïboforcen","album":null,"image":null}',
+            200));
+
+        var response = await api.getTrackInfo('Dédale', 'Aïboforcen');
+        expect(response, TypeMatcher<Track>());
+        expect(response.title, 'Dédale');
+        expect(response.artist, 'Aïboforcen');
+        expect(response.album, null);
+        expect(response.image, null);
       });
     });
   });
