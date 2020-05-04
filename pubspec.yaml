@@ -33,11 +33,13 @@ dependencies:
       url: https://github.com/Jei/just_audio
       ref: exoplayer-errors-stream
   marquee_widget: ^0.8.0
+  package_info: ^0.4.0+17
   palette_generator: ^0.2.2
   preferences: ^5.2.0
   provider: ^4.0.4
   rxdart: ^0.24.0
   transparent_image: ^1.0.0
+  url_launcher: ^5.4.5
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +63,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
