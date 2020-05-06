@@ -40,4 +40,4 @@ lib/generated_plugin_registrant.dart
 
 # Keystore and keystore properties
 *.jks
-android/app/keystore.properties
+keystore.properties
