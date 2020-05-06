@@ -1,27 +1,89 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:tormentedplayer/pages/home.dart';
+import 'package:preferences/preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:tormentedplayer/blocs/radio_bloc.dart';
+import 'package:tormentedplayer/pages/home_page.dart';
+import 'package:tormentedplayer/pages/settings_page.dart';
+import 'package:tormentedplayer/theme/style.dart';
 
-void main() => runApp(MyApp());
+import 'models/app_theme_mode.dart';
 
-class MyApp extends StatelessWidget {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Set `enableInDevMode` to true to see reports while in debug mode
+  // This is only to be used for confirming that reports are being
+  // submitted as expected. It is not intended to be used for everyday
+  // development.
+  // Crashlytics.instance.enableInDevMode = true;
+  FlutterError.onError = Crashlytics.instance.recordFlutterError;
+
+  await PrefService.init(prefix: 'pref_');
+
+  runApp(MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
+  RadioBloc _radioBloc = RadioBloc();
+  final FirebaseAnalytics analytics = FirebaseAnalytics();
+
+  @override
+  void initState() {
+    analytics.logAppOpen();
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _radioBloc.dispose();
+
+    super.dispose();
+  }
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AppThemeMode>(
+          create: (context) => AppThemeMode(
+            initialValue: ThemeMode.values[PrefService.getInt('theme') ?? 0],
+          ),
+        ),
+        Provider<RadioBloc>.value(
+          value: _radioBloc,
+        ),
+      ],
+      child: Consumer2<AppThemeMode, RadioBloc>(
+        builder: (context, appMode, radioBloc, child) {
+          return MaterialApp(
+            title: 'Tormented Player',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: appMode?.currentMode ?? ThemeMode.system,
+            navigatorObservers: [
+              FirebaseAnalyticsObserver(analytics: analytics),
+            ],
+            initialRoute: HomePage.routeName,
+            routes: {
+              HomePage.routeName: (context) => AudioServiceWidget(
+                    child: HomePage(),
+                  ),
+              SettingsPage.routeName: (context) => SettingsPage(),
+            },
+          );
+        },
       ),
-      home: HomePage(),
     );
   }
 }
