@@ -1,4 +1,4 @@
-package org.tapiri.jei.tormentedplayer
+package me.jonus.tormentedplayer
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
