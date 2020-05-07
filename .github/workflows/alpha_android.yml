@@ -25,7 +25,6 @@ jobs:
     - name: Prepare variables
       id: prepare_variables
       run: |
-        setopt BASH_REMATCH
         TIMESTAMP=`date +%s`
         [[ $GITHUB_REF =~ ^release\/v?(([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*))$ ]] && echo ::set-output name=build_name::"${BASH_REMATCH[2]}"
         [[ -z "${BASH_REMATCH[2]}" ]] && echo "Release name is not semver" && exit 1; 
