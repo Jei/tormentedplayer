@@ -1,0 +1,10 @@
+<b>Tormented Player</b> is the unofficial mobile version of <a href="https://www.tormentedradio.com/">Tormented Radio</a> by <a href="https://twitter.com/djdead">@djdead</a>.
+
+<h2>Features:</h2>
+• Ads free;
+• Album name and cover art provided by <a href="https://www.last.fm/home">Last.fm</a>
+• Play/stop from the Notification bar;
+
+<h3>This app is open source!</h3>
+Check out the source code and feel free to contribute on GitHub:
+https://github.com/Jei/tormentedplayer
