@@ -5,9 +5,12 @@ on:
       - 'release/v*'
 jobs:
   build:
-    name: Test and build
+    name: Test, build and release
     runs-on: ubuntu-latest
     steps:
+    ##############################################
+    # setup actions
+    ##############################################
     - uses: actions/checkout@v1
     - uses: actions/setup-java@v1
       with:
@@ -15,6 +18,16 @@ jobs:
     - uses: subosito/flutter-action@v1
       with:
         channel: 'beta'
+
+    ##############################################
+    # setup variables
+    ##############################################
+    - name: Prepare variables
+      id: prepare_variables
+      run: |
+        [[ $GITHUB_REF =~ ^release\/v?(([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*))$ ]] && echo ::set-output name=build_name::"$BASH_REMATCH[2]"
+        echo ::set-output name=build_number::$GITHUB_RUN_NUMBER
+        echo ::set-output name=release_name::"$BASH_REMATCH[2]+$GITHUB_RUN_NUMBER"
 
     ##############################################
     # setup-gcloud
@@ -39,14 +52,43 @@ jobs:
     ############################################
     # test and build the app
     ############################################
-    - run: flutter pub get
-    - run: flutter test
-    - run: flutter build appbundle --build-number=$GITHUB_RUN_NUMBER
+    - name: Run Flutter tests
+      run: |
+        flutter pub get
+        flutter test
 
     ############################################
-    # upload test version using Fastlane
+    # build AAB and upload to the Play Store using Fastlane
     ############################################
-    - uses: maierj/fastlane-action@v1.4.0
+    - name: Build AAB
+      run: flutter build appbundle --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
+    - name: Upload to the alpha track on the Play Store
+      uses: maierj/fastlane-action@v1.4.0
       with:
         lane: 'alpha'
         subdirectory: 'android'
+
+    ############################################
+    # build APK and create a prerelase on GitHub
+    ############################################
+    - name: Build (fat) APK
+      run: flutter build apk --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_name: Alpha ${{ steps.prepare_variables.outputs.release_name }}
+        draft: false
+        prerelease: true
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./build/app/outputs/apk/release/app-release.apk
+        asset_name: tormented-player-${{ steps.prepare_variables.outputs.release_name }}.apk
+        asset_content_type: application/vnd.android.package-archive
