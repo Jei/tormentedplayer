@@ -25,9 +25,10 @@ jobs:
     - name: Prepare variables
       id: prepare_variables
       run: |
+        TIMESTAMP=`date +%s`
         [[ $GITHUB_REF =~ ^release\/v?(([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*))$ ]] && echo ::set-output name=build_name::"$BASH_REMATCH[2]"
-        echo ::set-output name=build_number::$GITHUB_RUN_NUMBER
-        echo ::set-output name=release_name::"$BASH_REMATCH[2]+$GITHUB_RUN_NUMBER"
+        echo ::set-output name=build_number::$TIMESTAMP
+        echo ::set-output name=release_name::"$BASH_REMATCH[2]+$TIMESTAMP"
 
     ##############################################
     # setup-gcloud
@@ -80,6 +81,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_name: Alpha ${{ steps.prepare_variables.outputs.release_name }}
+        tag_name: v${{ steps.prepare_variables.outputs.release_name }}-alpha
         draft: false
         prerelease: true
     - name: Upload Release Asset
