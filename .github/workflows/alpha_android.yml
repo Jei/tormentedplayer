@@ -14,11 +14,11 @@ jobs:
     - name: Prepare variables
       id: prepare_variables
       run: |
+        semver_regex="^([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)$"
+        [[ ${GITHUB_REF:9} =~ $semver_regex ]] && echo ::set-output name=build_name::"${GITHUB_REF:9}" || (echo "Build name ${GITHUB_REF:9} is not semver" && exit 1);
         TIMESTAMP=`date +%s`
-        [[ $GITHUB_REF =~ ^release\/v?(([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*))$ ]] && echo ::set-output name=build_name::"${BASH_REMATCH[2]}"
-        [[ -z "${BASH_REMATCH[2]}" ]] && echo "Release name is not semver" && exit 1; 
         echo ::set-output name=build_number::$TIMESTAMP
-        echo ::set-output name=release_name::"${BASH_REMATCH[2]}+$TIMESTAMP"
+        echo ::set-output name=release_name::"${GITHUB_REF:9}+$TIMESTAMP"
 
     ##############################################
     # setup actions
