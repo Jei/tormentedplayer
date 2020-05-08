@@ -78,12 +78,13 @@ jobs:
       run: flutter build apk --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: fleskesvor/create-release@feature/support-target-commitish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_name: Alpha ${{ steps.prepare_variables.outputs.release_name }}
         tag_name: v${{ steps.prepare_variables.outputs.release_name }}-alpha
+        commitish: ${{ github.sha }}
         draft: false
         prerelease: true
     - name: Upload Release Asset
