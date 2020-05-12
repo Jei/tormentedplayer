@@ -12,72 +12,53 @@ class TrackInfo extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
 
-    return StreamBuilder<Track>(
-      stream: _bloc.trackStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasError || !snapshot.hasData) {
-          return Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  AnimatedPlaceholder(
-                    height: 32.0,
-                    width: 120.0,
-                    color: theme.accentColor,
-                  ),
-                  const SizedBox(height: 8.0),
-                  AnimatedPlaceholder(
-                    height: 40.0,
-                    color: textTheme.headline5.color,
-                  ),
-                  const SizedBox(height: 8.0),
-                  AnimatedPlaceholder(
-                    height: 32.0,
-                    width: 160.0,
-                    color: textTheme.subtitle1.color.withAlpha(138),
-                  ),
-                ]),
-          );
-        }
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 108.0,
+        maxHeight: 112.0,
+      ),
+      child: StreamBuilder<Track>(
+        stream: _bloc.trackStream,
+        builder: (context, snapshot) {
+          final loading = snapshot.hasError || !snapshot.hasData;
+          final track = snapshot.data;
 
-        Track track = snapshot.data;
-
-        return Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               InfoText(
-                track.artist,
+                track?.artist,
                 height: 32.0,
+                placeholderWidth: 120.0,
                 upperCase: true,
                 style: theme.textTheme.subtitle1.merge(TextStyle(
                   color: theme.accentColor,
                 )),
+                loading: loading,
               ),
-              const SizedBox(height: 8),
               InfoText(
-                track.title,
+                track?.title,
                 height: 40.0,
+                placeholderWidth: 200.0,
                 style: textTheme.headline5,
                 upperCase: false,
+                loading: loading,
               ),
-              const SizedBox(height: 8),
               InfoText(
-                track.album,
+                track?.album,
                 height: 32.0,
+                placeholderWidth: 160.0,
                 style: textTheme.subtitle1.merge(TextStyle(
                   color: textTheme.subtitle1.color.withAlpha(138),
                 )),
                 upperCase: true,
+                loading: loading,
               ),
             ],
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -85,19 +66,31 @@ class TrackInfo extends StatelessWidget {
 class InfoText extends StatelessWidget {
   final String text;
   final double height;
+  final double placeholderWidth;
   final bool upperCase;
+  final bool loading;
   final TextStyle style;
 
   const InfoText(
     this.text, {
     Key key,
     this.height,
+    this.placeholderWidth,
     this.upperCase = false,
+    this.loading = false,
     this.style,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return AnimatedPlaceholder(
+        height: 32.0,
+        width: placeholderWidth,
+        color: style.color,
+      );
+    }
+
     return Container(
       alignment: Alignment.center,
       height: height,
