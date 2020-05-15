@@ -1,4 +1,4 @@
-name: Release Android alpha version
+name: Release Android beta version
 on:
   push:
     branches:
@@ -65,10 +65,10 @@ jobs:
     ############################################
     - name: Build AAB
       run: flutter build appbundle --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
-    - name: Upload to the alpha track on the Play Store
+    - name: Upload to the beta track on the Play Store
       uses: maierj/fastlane-action@v1.4.0
       with:
-        lane: 'alpha'
+        lane: 'beta'
         subdirectory: 'android'
 
     ############################################
@@ -82,8 +82,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        release_name: Alpha ${{ steps.prepare_variables.outputs.release_name }}
-        tag_name: v${{ steps.prepare_variables.outputs.release_name }}-alpha
+        release_name: Beta ${{ steps.prepare_variables.outputs.release_name }}
+        tag_name: v${{ steps.prepare_variables.outputs.release_name }}-beta
         commitish: ${{ github.sha }}
         draft: false
         prerelease: true
