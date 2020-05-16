@@ -109,14 +109,14 @@ main() {
             .thenAnswer((_) async => Response('''<SHOUTCASTSERVER>
 <SERVERURL>http://www.tormentedradio.com</SERVERURL>
 <SERVERTITLE>-=- tormented radio -=- streaming since 1998</SERVERTITLE>
-<SONGTITLE>Aïboforcen - Dédale</SONGTITLE>
+<SONGTITLE>HeimatÃ¦rde - Du Fehlst Mir</SONGTITLE>
 <VERSION>2.5.5.733 (posix(linux x64))</VERSION>
 </SHOUTCASTSERVER>''', 200));
 
         var response = await tr.getCurrentTrack();
         expect(response, TypeMatcher<Track>());
-        expect(response.title, 'Dédale');
-        expect(response.artist, 'Aïboforcen');
+        expect(response.title, 'Du Fehlst Mir');
+        expect(response.artist, 'Heimatærde');
         expect(response.image, null);
         expect(response.album, null);
       });

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:http/http.dart' show Client, Response;
 import 'package:html/parser.dart';
 import 'package:html/dom.dart';
@@ -53,11 +55,10 @@ class TormentedRadio {
   }
 
   Future<Track> getCurrentTrack() async {
-    // TODO solve UTF-8 encoding problem
     Response response = await client.get(_statsUrl);
 
     if (response.statusCode == 200) {
-      return _parseStats(response.body);
+      return _parseStats(utf8.decode(response.bodyBytes));
     } else {
       throw Exception(
           'Could not get the current track from Tormented Radio: ${response.body}');
