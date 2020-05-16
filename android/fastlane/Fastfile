@@ -16,25 +16,33 @@
 default_platform(:android)
 
 platform :android do
-  desc "Submit a new Alpha Build to Google Play"
+  desc "Submit a new Alpha build to Google Play"
   lane :alpha do
     # Upload the existing build to the alpha track
 
     upload_to_play_store(
       track: 'alpha',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
-      skip_upload_changelogs: true
     )
   end
 
-  desc "Submit a new Beta Build to Google Play"
+  desc "Submit a new Beta build to Google Play"
   lane :beta do
     # Upload the existing build to the beta track
 
     upload_to_play_store(
       track: 'beta',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
-      skip_upload_changelogs: true
+    )
+  end
+
+  desc "Submit a new Production build to Google Play"
+  lane :production do
+    # Upload the existing build to the production track
+
+    upload_to_play_store(
+      track: 'production',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
     )
   end
 end
