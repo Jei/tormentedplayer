@@ -2,12 +2,10 @@ name: Test and build Android apk
 on:
   push:
     branches:
-      - master
       - develop
   pull_request:
     branches:
       - develop
-      - master
 jobs:
   build:
     name: Test and build
