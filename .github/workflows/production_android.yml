@@ -15,7 +15,7 @@ jobs:
       id: prepare_variables
       run: |
         semver_regex="^([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)$"
-        BUILD_NAME="${GITHUB_REF:20}"
+        BUILD_NAME="${GITHUB_REF:11}"
         [[ $BUILD_NAME =~ $semver_regex ]] && echo ::set-output name=build_name::"$BUILD_NAME" || (echo "Build name $BUILD_NAME is not semver" && exit 1);
         TIMESTAMP=`date +%s`
         echo ::set-output name=build_number::$TIMESTAMP
