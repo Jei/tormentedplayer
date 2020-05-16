@@ -12,12 +12,18 @@ class PlayerButton extends StatelessWidget {
     final highlight = color.withAlpha(30);
     final splash = color.withAlpha(50);
 
-    return Material(
-      color: Colors.transparent,
-      child: Center(
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: 44.0,
+        maxHeight: 72.0,
+        minWidth: 44.0,
+        maxWidth: 72.0,
+      ),
+      child: Material(
+        color: Colors.transparent,
         child: Ink(
-          height: 72,
-          width: 72,
+          height: double.infinity,
+          width: double.infinity,
           decoration: BoxDecoration(
             border: Border.all(color: color, width: 1.0),
             color: Colors.transparent,
@@ -37,7 +43,7 @@ class PlayerButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(100.0),
                   child: isLoading
                       ? Padding(
-                          padding: EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(16),
                           child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(color),
                           ))

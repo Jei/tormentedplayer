@@ -32,7 +32,7 @@ class AudioClient {
         backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
         androidNotificationChannelName: 'Tormented Player',
         notificationColor: 0xFF212121,
-        androidNotificationIcon: 'drawable/ic_notification_radio',
+        androidNotificationIcon: 'drawable/ic_notification_eye',
         enableQueue: false,
         androidStopForegroundOnPause: true,
       );

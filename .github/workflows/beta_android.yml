@@ -1,0 +1,99 @@
+name: Release Android beta version
+on:
+  push:
+    branches:
+      - 'release/v*'
+jobs:
+  build:
+    name: Test, build and release
+    runs-on: ubuntu-latest
+    steps:
+    ##############################################
+    # setup variables
+    ##############################################
+    - name: Prepare variables
+      id: prepare_variables
+      run: |
+        semver_regex="^([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)\.([0-9]|[1-9][0-9]*)$"
+        BUILD_NAME="${GITHUB_REF:20}"
+        [[ $BUILD_NAME =~ $semver_regex ]] && echo ::set-output name=build_name::"$BUILD_NAME" || (echo "Build name $BUILD_NAME is not semver" && exit 1);
+        TIMESTAMP=`date +%s`
+        echo ::set-output name=build_number::$TIMESTAMP
+        echo ::set-output name=release_name::"$BUILD_NAME+$TIMESTAMP"
+
+    ##############################################
+    # setup actions
+    ##############################################
+    - uses: actions/checkout@v1
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1
+      with:
+        channel: 'beta'
+
+    ##############################################
+    # setup-gcloud
+    ##############################################
+    # the setup-gcloud action seems to need python
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+    # use setup-gcloud configured with auth credentials 
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      with:
+        version: '270.0.0'
+        service_account_email: ${{ secrets.GCS_EMAIL }}
+        service_account_key: ${{ secrets.GCS_KEY }}
+
+    ############################################
+    # download credential files 
+    ############################################
+    - name: Download credential files
+      run: ./get-credentials.sh
+
+    ############################################
+    # test and build the app
+    ############################################
+    - name: Run Flutter tests
+      run: |
+        flutter pub get
+        flutter test
+
+    ############################################
+    # build AAB and upload to the Play Store using Fastlane
+    ############################################
+    - name: Build AAB
+      run: flutter build appbundle --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
+    - name: Upload to the beta track on the Play Store
+      uses: maierj/fastlane-action@v1.4.0
+      with:
+        lane: 'beta'
+        subdirectory: 'android'
+
+    ############################################
+    # build APK and create a prerelase on GitHub
+    ############################################
+    - name: Build (fat) APK
+      run: flutter build apk --build-name=${{ steps.prepare_variables.outputs.build_name }} --build-number=${{ steps.prepare_variables.outputs.build_number }}
+    - name: Create Release
+      id: create_release
+      uses: fleskesvor/create-release@feature/support-target-commitish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_name: Beta ${{ steps.prepare_variables.outputs.release_name }}
+        tag_name: v${{ steps.prepare_variables.outputs.release_name }}-beta
+        commitish: ${{ github.sha }}
+        draft: false
+        prerelease: true
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./build/app/outputs/apk/release/app-release.apk
+        asset_name: tormented-player-${{ steps.prepare_variables.outputs.release_name }}.apk
+        asset_content_type: application/vnd.android.package-archive

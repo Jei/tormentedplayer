@@ -13,30 +13,26 @@ class TrackCover extends StatelessWidget {
       elevation: 4,
       borderRadius: BorderRadius.circular(4.0),
       clipBehavior: Clip.antiAlias,
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: Colors.black45,
-          ),
-          child: StreamBuilder<Track>(
-              stream: _bloc.trackStream,
-              builder: (context, snapshot) {
-                String src = snapshot.data?.image ?? '';
-
-                if (src.isEmpty) {
-                  return const CoverPlaceholder();
-                }
-
-                // TODO add placeholder image
-                return CachedNetworkImage(
-                  imageUrl: src,
-                  placeholder: (context, url) => const CoverPlaceholder(),
-                  errorWidget: (context, url, err) => const CoverPlaceholder(),
-                  fit: BoxFit.cover,
-                );
-              }),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: Colors.black45,
         ),
+        child: StreamBuilder<Track>(
+            stream: _bloc.trackStream,
+            builder: (context, snapshot) {
+              String src = snapshot.data?.image ?? '';
+
+              if (src.isEmpty) {
+                return const CoverPlaceholder();
+              }
+
+              return CachedNetworkImage(
+                imageUrl: src,
+                placeholder: (context, url) => const CoverPlaceholder(),
+                errorWidget: (context, url, err) => const CoverPlaceholder(),
+                fit: BoxFit.cover,
+              );
+            }),
       ),
     );
   }
