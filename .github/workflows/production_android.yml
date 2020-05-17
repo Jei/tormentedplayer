@@ -83,7 +83,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         release_name: ${{ steps.prepare_variables.outputs.release_name }}
-        tag_name: v${{ github.ref }}
+        tag_name: ${{ github.ref }}
         commitish: ${{ github.sha }}
         draft: false
         prerelease: false
