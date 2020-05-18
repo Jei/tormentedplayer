@@ -27,16 +27,13 @@ class RadioBloc {
           .transform(StreamTransformer<Track, Track>.fromHandlers(
         handleData: (track, sink) async {
           final currentTrack = _trackSubject.value;
-          print('Current track from TR: $track');
 
           // Request full data only if the track changed
           if (track.title != currentTrack?.title ||
               track.artist != currentTrack?.artist) {
-            print('Track is new');
             final fullTrack =
                 await _repository.fetchTrack(track.title, track.artist);
             sink.add(fullTrack);
-            print('Track added to sink: $fullTrack');
           }
         },
       ))
