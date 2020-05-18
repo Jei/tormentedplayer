@@ -13,9 +13,6 @@ class Repository {
   Future<Track> fetchTrack(String title, String artist) =>
       _api.getTrackInfo(title, artist);
 
-  Future<Track> fetchCurrentTrack() async {
-    Track currentTrack = await _tormentedRadio.getCurrentTrack();
+  Future<Track> fetchCurrentTrack() => _tormentedRadio.getCurrentTrack();
 
-    return _api.getTrackInfo(currentTrack?.title, currentTrack?.artist);
-  }
 }
