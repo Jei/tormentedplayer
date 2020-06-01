@@ -266,9 +266,11 @@ packages:
   marquee_widget:
     dependency: "direct main"
     description:
-      name: marquee_widget
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: dispose-timer
+      resolved-ref: c0cd5b46861766dcecd6ad6fdb6551310423a6c7
+      url: "https://github.com/Jei/marquee_widget"
+    source: git
     version: "0.8.0"
   matcher:
     dependency: transitive

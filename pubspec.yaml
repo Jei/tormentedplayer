@@ -32,7 +32,10 @@ dependencies:
     git:
       url: https://github.com/Jei/just_audio
       ref: exoplayer-errors-stream
-  marquee_widget: ^0.8.0
+  marquee_widget:
+    git:
+      url: https://github.com/Jei/marquee_widget
+      ref: dispose-timer
   package_info: ^0.4.0+17
   palette_generator: ^0.2.2
   preferences: ^5.2.0
