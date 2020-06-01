@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/resources/radio.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
+
+import '../utils.dart';
 
 class MockRadioBloc extends Mock implements RadioBloc {}
 
@@ -18,7 +19,10 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.connecting));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(
+        child: PlayerButton(),
+        bloc: bloc,
+      ));
       await tester.pump(Duration(milliseconds: 100));
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -31,7 +35,7 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.stopped));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(child: PlayerButton(), bloc: bloc));
 
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
     });
@@ -43,7 +47,10 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.playing));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(
+        child: PlayerButton(),
+        bloc: bloc,
+      ));
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.pause), findsOneWidget);
@@ -56,7 +63,10 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.stopped));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(
+        child: PlayerButton(),
+        bloc: bloc,
+      ));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PlayerButton));
@@ -70,7 +80,10 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.playing));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(
+        child: PlayerButton(),
+        bloc: bloc,
+      ));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byType(PlayerButton));
@@ -84,7 +97,10 @@ void main() {
       when(bloc.playbackStateStream)
           .thenAnswer((_) => Stream.value(RadioPlaybackState.connecting));
 
-      await tester.pumpWidget(wrapWidget(PlayerButton(), bloc));
+      await tester.pumpWidget(TestWrap(
+        child: PlayerButton(),
+        bloc: bloc,
+      ));
       await tester.pump(Duration(milliseconds: 100));
 
       await tester.tap(find.byType(PlayerButton));
@@ -92,15 +108,4 @@ void main() {
       verifyNever(bloc.startRadio());
     });
   });
-}
-
-Widget wrapWidget(Widget child, RadioBloc bloc) {
-  return MaterialApp(
-    home: Scaffold(
-      body: Provider<RadioBloc>.value(
-        value: bloc,
-        child: child,
-      ),
-    ),
-  );
 }
