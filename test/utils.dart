@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:tormentedplayer/blocs/radio_bloc.dart';
+
+class MockRadioBloc extends Mock implements RadioBloc {}
 
 class TestWrap extends StatelessWidget {
   final Widget child;
