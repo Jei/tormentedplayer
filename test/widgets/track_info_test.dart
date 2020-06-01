@@ -1,13 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/widgets/animated_placeholder.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
 
 import '../utils.dart';
-
-class MockRadioBloc extends Mock implements RadioBloc {}
 
 void main() {
   group('TrackInfo', () {

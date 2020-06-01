@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:tormentedplayer/blocs/radio_bloc.dart';
 import 'package:tormentedplayer/resources/radio.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
 
 import '../utils.dart';
-
-class MockRadioBloc extends Mock implements RadioBloc {}
 
 void main() {
   group('PlayerButton', () {

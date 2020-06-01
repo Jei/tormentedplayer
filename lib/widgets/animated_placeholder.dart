@@ -7,16 +7,16 @@ class AnimatedPlaceholder extends StatefulWidget {
 
   const AnimatedPlaceholder({
     Key key,
-    this.height,
+    this.height = 32,
     this.width,
     this.color = Colors.black45,
   }) : super(key: key);
 
   @override
-  _AnimatedPlaceholderState createState() => _AnimatedPlaceholderState();
+  AnimatedPlaceholderState createState() => AnimatedPlaceholderState();
 }
 
-class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
+class AnimatedPlaceholderState extends State<AnimatedPlaceholder>
     with SingleTickerProviderStateMixin {
   AnimationController _controller;
   Animation _gradientPosition;
@@ -36,7 +36,7 @@ class _AnimatedPlaceholderState extends State<AnimatedPlaceholder>
 
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1500),
     );
 
     _gradientPosition = Tween<double>(begin: -1.0, end: 2.0).animate(
