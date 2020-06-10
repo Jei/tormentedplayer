@@ -31,9 +31,14 @@ class RadioBloc {
           // Request full data only if the track changed
           if (track.title != currentTrack?.title ||
               track.artist != currentTrack?.artist) {
-            final fullTrack =
-                await _repository.fetchTrack(track.title, track.artist);
-            sink.add(fullTrack);
+            try {
+              final fullTrack =
+                  await _repository.fetchTrack(track.title, track.artist);
+              sink.add(fullTrack);
+            } catch (err) {
+              print(err);
+              sink.add(track);
+            }
           }
         },
       ))
