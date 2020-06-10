@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:http/http.dart' show Client;
 import 'package:rxdart/rxdart.dart';
+import 'package:tormentedplayer/models/history_item.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/resources/repository.dart';
 import 'package:tormentedplayer/services/audio.dart';
@@ -13,6 +14,8 @@ class RadioBloc {
 
   final BehaviorSubject<Track> _apiTrackSubject = BehaviorSubject<Track>();
   final BehaviorSubject<Track> _trackSubject = BehaviorSubject<Track>();
+  final BehaviorSubject<List<HistoryItem>> _historySubject =
+      BehaviorSubject<List<HistoryItem>>();
 
   RadioBloc() {
     // Stream of the current Track from the API (when the radio is off)
@@ -68,6 +71,12 @@ class RadioBloc {
           .distinct(_compareTracks),
       cancelOnError: false,
     ); // Emit only when we have a different track
+
+    // Fetch the history every time we have a new track
+    _historySubject.addStream(
+      _trackSubject.stream.asyncMap((_) => _repository.fetchHistory()),
+      cancelOnError: false,
+    );
   }
 
   bool _validateTrack(Track track) =>
@@ -104,6 +113,10 @@ class RadioBloc {
 
   RadioPlaybackState get playbackState => _radio.playbackState;
 
+  Stream<List<HistoryItem>> get historyStream => _historySubject.stream;
+
+  List<HistoryItem> get history => _historySubject.value;
+
   startRadio() => _radio.start();
 
   stopRadio() => _radio.stop();
@@ -111,5 +124,6 @@ class RadioBloc {
   dispose() {
     _apiTrackSubject.close();
     _trackSubject.close();
+    _historySubject.close();
   }
 }

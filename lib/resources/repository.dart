@@ -1,3 +1,4 @@
+import 'package:tormentedplayer/models/history_item.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/services/api.dart';
 import 'package:tormentedplayer/services/tormentedradio.dart';
@@ -14,5 +15,7 @@ class Repository {
       _api.getTrackInfo(title, artist);
 
   Future<Track> fetchCurrentTrack() => _tormentedRadio.getCurrentTrack();
+
+  Future<List<HistoryItem>> fetchHistory() => _tormentedRadio.getHistory();
 
 }
