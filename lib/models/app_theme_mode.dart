@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 class AppThemeMode extends ChangeNotifier {
   ThemeMode _currentMode;
 
-  AppThemeMode({ ThemeMode initialValue = ThemeMode.system }) {
+  static const defaultThemeMode = ThemeMode.dark;
+
+  AppThemeMode({ ThemeMode initialValue = defaultThemeMode }) {
     _currentMode = initialValue;
   }
 
