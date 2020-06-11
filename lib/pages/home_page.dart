@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tormentedplayer/pages/settings_page.dart';
 import 'package:tormentedplayer/widgets/background_gradient.dart';
+import 'package:tormentedplayer/widgets/history_bottom_sheet.dart';
+import 'package:tormentedplayer/widgets/history_list.dart';
 import 'package:tormentedplayer/widgets/player_button.dart';
 import 'package:tormentedplayer/widgets/track_cover.dart';
 import 'package:tormentedplayer/widgets/track_info.dart';
@@ -99,7 +101,18 @@ class PortraitLayout extends StatelessWidget {
             SizedBox(height: 16.0),
             TrackInfo(),
             const SizedBox(height: 16.0),
-            PlayerButton(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                SizedBox(width: 48), // Placeholder for another button
+                PlayerButton(),
+                IconButton(
+                  icon: Icon(Icons.playlist_play),
+                  color: Theme.of(context).iconTheme.color,
+                  onPressed: () => _openHistoryList(context),
+                ),
+              ],
+            ),
           ],
         );
       } else {
@@ -109,7 +122,18 @@ class PortraitLayout extends StatelessWidget {
           children: <Widget>[
             TrackInfo(),
             const SizedBox(height: 16.0),
-            PlayerButton(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                SizedBox(width: 48), // Placeholder for another button
+                PlayerButton(),
+                IconButton(
+                  icon: Icon(Icons.playlist_play),
+                  color: Theme.of(context).iconTheme.color,
+                  onPressed: () => _openHistoryList(context),
+                ),
+              ],
+            ),
           ],
         );
       }
@@ -146,7 +170,18 @@ class LandscapeLayout extends StatelessWidget {
                   children: <Widget>[
                     TrackInfo(),
                     const SizedBox(height: 16.0),
-                    PlayerButton(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: <Widget>[
+                        SizedBox(width: 48), // Placeholder for another button
+                        PlayerButton(),
+                        IconButton(
+                          icon: Icon(Icons.playlist_play),
+                          color: Theme.of(context).iconTheme.color,
+                          onPressed: () => _openHistoryList(context),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -163,7 +198,17 @@ class LandscapeLayout extends StatelessWidget {
               const SizedBox(height: 16.0),
               Flexible(
                 flex: 1,
-                child: PlayerButton(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    PlayerButton(),
+                    IconButton(
+                      icon: Icon(Icons.playlist_play),
+                      color: Theme.of(context).iconTheme.color,
+                      onPressed: () => _openHistoryList(context),
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -171,4 +216,15 @@ class LandscapeLayout extends StatelessWidget {
       },
     );
   }
+}
+
+void _openHistoryList(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8.0),
+    ),
+    isScrollControlled: true,
+    builder: (_) => HistoryBottomSheet(),
+  );
 }
