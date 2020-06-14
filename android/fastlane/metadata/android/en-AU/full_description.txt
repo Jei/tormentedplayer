@@ -3,6 +3,7 @@ Listen to your favourite industrial, EBM and synthpop music on your Android devi
 
 <h2><b>Features:</b></h2>
 • Ads free;
+• See a list of recently played songs;
 • Album name and cover art provided by <a href="https://www.last.fm/home">Last.fm</a>;
 • Play/stop the radio from the media notification;
 
