@@ -40,7 +40,7 @@ class TormentedRadio {
     }
 
     // Get the tracks from each row
-    return rows.map((Element element) => HistoryItem.fromElement(element));
+    return rows.map((Element element) => HistoryItem.fromElement(element)).toList();
   }
 
   Future<List<HistoryItem>> getHistory() async {
