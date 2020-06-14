@@ -1,16 +1,25 @@
-# tormentedplayer
+# Tormented Player
 
-A Flutter client for Tormented Radio
+Tormented Player is the unofficial mobile version of [Tormented Radio](https://tormentedradio.com/) by [@djdead](https://twitter.com/djdead).
+Listen to your favourite industrial, EBM and synthpop music on your Android device.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Ads free;
+- Album name and cover art provided by Last.fm;
+- See a list of recently played songs;
+- Play/stop the radio from the media notification.
 
-A few resources to get you started if this is your first Flutter project:
+## Feedbacks
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+For feedbacks and bug reports please submit an issue here following the guidelines in [CONTRIBUTING.md](https://github.com/Jei/tormentedplayer/blob/develop/CONTRIBUTING.md), or send and email to [support@tormentedradio.com](mailto:support@tormentedradio.com).
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Contributing
+
+Read [CONTRIBUTING.md](https://github.com/Jei/tormentedplayer/blob/develop/CONTRIBUTING.md) to know how you can help developing this project.
+
+## Support
+
+This app is free. I will never ask you for money to use it or any of its features. I will not put ads in it either.
+
+If you would like to support my work, consider [buying me a coffee](https://ko-fi.com/andreajonus)!
