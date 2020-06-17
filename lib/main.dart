@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:preferences/preferences.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +39,10 @@ class MyAppState extends State<MyApp> {
 
   @override
   void initState() {
+    if (kDebugMode) {
+      analytics.setAnalyticsCollectionEnabled(false);
+    }
+
     analytics.logAppOpen();
 
     super.initState();
@@ -57,7 +62,8 @@ class MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider<AppThemeMode>(
           create: (context) => AppThemeMode(
-            initialValue: ThemeMode.values[PrefService.getInt('theme') ?? 0],
+            initialValue: ThemeMode.values[PrefService.getInt('theme') ??
+                AppThemeMode.defaultThemeMode.index],
           ),
         ),
         Provider<RadioBloc>.value(
@@ -70,7 +76,7 @@ class MyAppState extends State<MyApp> {
             title: 'Tormented Player',
             theme: lightTheme,
             darkTheme: darkTheme,
-            themeMode: appMode?.currentMode ?? ThemeMode.system,
+            themeMode: appMode?.currentMode ?? AppThemeMode.defaultThemeMode,
             navigatorObservers: [
               FirebaseAnalyticsObserver(analytics: analytics),
             ],

@@ -1,3 +1,4 @@
+import 'package:tormentedplayer/models/history_item.dart';
 import 'package:tormentedplayer/models/track.dart';
 import 'package:tormentedplayer/services/api.dart';
 import 'package:tormentedplayer/services/tormentedradio.dart';
@@ -13,9 +14,8 @@ class Repository {
   Future<Track> fetchTrack(String title, String artist) =>
       _api.getTrackInfo(title, artist);
 
-  Future<Track> fetchCurrentTrack() async {
-    Track currentTrack = await _tormentedRadio.getCurrentTrack();
+  Future<Track> fetchCurrentTrack() => _tormentedRadio.getCurrentTrack();
 
-    return _api.getTrackInfo(currentTrack?.title, currentTrack?.artist);
-  }
+  Future<List<HistoryItem>> fetchHistory() => _tormentedRadio.getHistory();
+
 }

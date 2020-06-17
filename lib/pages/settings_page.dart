@@ -33,7 +33,7 @@ class SettingsPage extends StatelessWidget {
             DropdownPreference(
               'Theme',
               'theme',
-              defaultVal: ThemeMode.system.index,
+              defaultVal: AppThemeMode.defaultThemeMode.index,
               displayValues: ['Light', 'Dark', 'System default'],
               values: [
                 ThemeMode.light.index,
