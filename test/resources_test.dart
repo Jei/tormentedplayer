@@ -14,8 +14,11 @@ main() {
         final client = MockAudioClient();
         final radio = Radio(client);
 
-        when(client.playbackState).thenReturn(
-            PlaybackState(basicState: BasicPlaybackState.none, actions: null));
+        when(client.playbackState).thenReturn(PlaybackState(
+          processingState: AudioProcessingState.none,
+          actions: null,
+          playing: false,
+        ));
 
         radio.start();
         verify(client.start());
@@ -26,7 +29,10 @@ main() {
         final radio = Radio(client);
 
         when(client.playbackState).thenReturn(PlaybackState(
-            basicState: BasicPlaybackState.stopped, actions: null));
+          processingState: AudioProcessingState.stopped,
+          actions: null,
+          playing: false,
+        ));
 
         radio.start();
         verify(client.start());
@@ -36,8 +42,11 @@ main() {
         final client = MockAudioClient();
         final radio = Radio(client);
 
-        when(client.playbackState).thenReturn(
-            PlaybackState(basicState: BasicPlaybackState.error, actions: null));
+        when(client.playbackState).thenReturn(PlaybackState(
+          processingState: AudioProcessingState.error,
+          actions: null,
+          playing: false,
+        ));
 
         radio.start();
         verify(client.start());
@@ -48,7 +57,10 @@ main() {
         final radio = Radio(client);
 
         when(client.playbackState).thenReturn(PlaybackState(
-            basicState: BasicPlaybackState.paused, actions: null));
+          processingState: AudioProcessingState.ready,
+          actions: null,
+          playing: false,
+        ));
 
         radio.start();
         verify(client.play());

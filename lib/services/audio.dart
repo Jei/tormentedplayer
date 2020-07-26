@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' show Client;
 import 'package:rxdart/rxdart.dart';
 import 'package:just_audio/just_audio.dart';
@@ -31,9 +32,9 @@ class AudioClient {
   Future<bool> start() => AudioService.start(
         backgroundTaskEntrypoint: audioPlayerTaskEntryPoint,
         androidNotificationChannelName: 'Tormented Player',
-        notificationColor: 0xFF212121,
+        androidNotificationColor: 0xFF212121,
         androidNotificationIcon: 'drawable/ic_notification_eye',
-        enableQueue: false,
+        androidEnableQueue: false,
         androidStopForegroundOnPause: true,
       );
 
@@ -60,27 +61,26 @@ class AudioPlayerTask extends BackgroundAudioTask {
   final String _url = 'http://stream2.mpegradio.com:8070/tormented.mp3';
   Completer _completer = Completer();
 
-  BasicPlaybackState _stateToBasicState(AudioPlaybackState state) {
+  AudioProcessingState _stateToAudioProcessingState(AudioPlaybackState state) {
     switch (state) {
       case AudioPlaybackState.none:
-        return BasicPlaybackState.none;
+        return AudioProcessingState.none;
       case AudioPlaybackState.stopped:
-        return BasicPlaybackState.stopped;
+        return AudioProcessingState.stopped;
       case AudioPlaybackState.paused:
-        return BasicPlaybackState.paused;
       case AudioPlaybackState.playing:
-        return BasicPlaybackState.playing;
+        return AudioProcessingState.ready;
       case AudioPlaybackState.connecting:
-        return BasicPlaybackState.connecting;
+        return AudioProcessingState.connecting;
       case AudioPlaybackState.completed:
-        return BasicPlaybackState.stopped;
+        return AudioProcessingState.stopped;
       default:
         throw Exception('Illegal state');
     }
   }
 
-  List<MediaControl> _getControls(state) {
-    if (state == BasicPlaybackState.playing) {
+  List<MediaControl> _getControls(bool playing) {
+    if (playing) {
       return [
         pauseControl,
       ];
@@ -91,11 +91,42 @@ class AudioPlayerTask extends BackgroundAudioTask {
     }
   }
 
-  void _setState(BasicPlaybackState state) {
+  void _setState(AudioProcessingState state, bool playing) {
+    // Avoid calling AudioServiceBackground.setState when the state is the same
+    if (state == AudioServiceBackground.state.processingState &&
+        playing == AudioServiceBackground.state.playing) {
+      return;
+    }
     AudioServiceBackground.setState(
-      basicState: state,
-      controls: _getControls(state),
+      processingState: state,
+      playing: playing,
+      controls: _getControls(playing),
     );
+  }
+
+  // Stops player and sets the new audio processing state
+  Future<void> _stopPlayer(AudioProcessingState state) async {
+    // AudioPlayer.stop() cannot be called from a "none" processing state
+    if (_audioPlayer.playbackState != AudioPlaybackState.none) {
+      await _audioPlayer.stop();
+    }
+    await _audioPlayer.dispose();
+    _setState(state, false);
+    _eventSubscription.cancel();
+    _mediaItemSubscription.cancel();
+    _completer.complete();
+  }
+
+  // Handler for errors thrown by AudioPlayer.setUrl() or during playback
+  void _handlePlayerError(String message, Object error, [StackTrace stack]) {
+    // AudioPlayer.setUrl() throws a "Connection aborted" error every time it's called
+    if (error is PlatformException &&
+        error.code == "abort" &&
+        error.message == "Connection aborted") return;
+
+    // Print the error and stop the player
+    print('$message: $error; $stack');
+    _stopPlayer(AudioProcessingState.error);
   }
 
   List<String> _parseIcyTitle(String title) {
@@ -144,20 +175,16 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   @override
-  Future<void> onStart() async {
+  Future<void> onStart(Map<String, dynamic> params) async {
     // Subscribe to AudioPlayer events
     // Playback state events
     _eventSubscription = _audioPlayer.playbackEventStream.listen(
       (event) {
-        final state = _stateToBasicState(event.state);
-        if (state != BasicPlaybackState.stopped) {
-          _setState(state);
-        }
-        _setState(state);
+        final state = _stateToAudioProcessingState(event.state);
+        _setState(state, event.state == AudioPlaybackState.playing);
       },
       onError: (err, stack) {
-        print('Error during playback: $err; $stack');
-        onError();
+        _handlePlayerError('Error during playback', err, stack);
       },
     );
 
@@ -172,9 +199,10 @@ class AudioPlayerTask extends BackgroundAudioTask {
       // Start playing immediately
       onPlay();
     } catch (err) {
-      print('Error while connecting to the URL: $err');
-      onError();
+      _handlePlayerError('Error while connecting to the URL', err);
     }
+
+    // This future is completed when the player is stopped or throws error
     await _completer.future;
   }
 
@@ -189,24 +217,14 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   @override
-  void onStop() {
-    _audioPlayer.stop();
-    _setState(BasicPlaybackState.stopped);
-    _eventSubscription.cancel();
-    _mediaItemSubscription.cancel();
-    _completer.complete();
-  }
-
-  void onError() {
-    _audioPlayer.stop();
-    _setState(BasicPlaybackState.error);
-    _eventSubscription.cancel();
-    _mediaItemSubscription.cancel();
-    _completer.complete();
+  Future<void> onStop() async {
+    await _stopPlayer(AudioProcessingState.stopped);
+    await super.onStop();
   }
 
   @override
-  void onAudioFocusLost() {
+  void onAudioFocusLost(AudioInterruption interruption) {
+    // TODO handle interruption depending on its type
     onPause();
   }
 }

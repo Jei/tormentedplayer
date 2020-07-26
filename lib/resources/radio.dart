@@ -21,26 +21,26 @@ class Radio {
   Radio(this._audio);
 
   RadioPlaybackState _audioToRadioPlaybackState(PlaybackState state) {
-    BasicPlaybackState basicState = state?.basicState;
+    AudioProcessingState processingState = state?.processingState;
 
-    switch (basicState) {
-      case BasicPlaybackState.error:
+    switch (processingState) {
+      case AudioProcessingState.error:
         return RadioPlaybackState.error;
-      case BasicPlaybackState.stopped:
+      case AudioProcessingState.stopped:
         return RadioPlaybackState.stopped;
-      case BasicPlaybackState.paused:
-        return RadioPlaybackState.paused;
-      case BasicPlaybackState.playing:
-        return RadioPlaybackState.playing;
-      case BasicPlaybackState.buffering:
+      case AudioProcessingState.ready:
+        return state?.playing == true
+            ? RadioPlaybackState.playing
+            : RadioPlaybackState.paused;
+      case AudioProcessingState.buffering:
         return RadioPlaybackState.buffering;
-      case BasicPlaybackState.connecting:
+      case AudioProcessingState.connecting:
         return RadioPlaybackState.connecting;
-      case BasicPlaybackState.fastForwarding:
-      case BasicPlaybackState.rewinding:
-      case BasicPlaybackState.skippingToPrevious:
-      case BasicPlaybackState.skippingToNext:
-      case BasicPlaybackState.skippingToQueueItem:
+      case AudioProcessingState.fastForwarding:
+      case AudioProcessingState.rewinding:
+      case AudioProcessingState.skippingToPrevious:
+      case AudioProcessingState.skippingToNext:
+      case AudioProcessingState.skippingToQueueItem:
         throw Exception('Unsupported AudioService state');
       default:
         return RadioPlaybackState.none;
@@ -54,16 +54,16 @@ class Radio {
       image: (item?.artUri ?? '').isEmpty ? null : item.artUri);
 
   void start() {
-    BasicPlaybackState state =
-        _audio.playbackState?.basicState ?? BasicPlaybackState.none;
+    RadioPlaybackState currentState =
+        _audioToRadioPlaybackState(_audio.playbackState);
 
-    switch (state) {
-      case BasicPlaybackState.paused:
+    switch (currentState) {
+      case RadioPlaybackState.paused:
         _audio.play();
         break;
-      case BasicPlaybackState.none:
-      case BasicPlaybackState.stopped:
-      case BasicPlaybackState.error:
+      case RadioPlaybackState.none:
+      case RadioPlaybackState.stopped:
+      case RadioPlaybackState.error:
         _audio.start();
         break;
       default:
@@ -84,6 +84,5 @@ class Radio {
   Stream<Track> get currentTrackStream =>
       _audio.currentMediaItemStream.map(_mediaItemToTrack);
 
-  Track get currentTrack =>
-      _mediaItemToTrack(_audio.currentMediaItem);
+  Track get currentTrack => _mediaItemToTrack(_audio.currentMediaItem);
 }

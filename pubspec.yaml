@@ -20,7 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  audio_service: ^0.7.2
+  audio_service: ^0.11.2
   cached_network_image: ^2.0.0
   cloud_functions: ^0.4.2+3
   firebase_analytics: ^5.0.11
@@ -29,10 +29,7 @@ dependencies:
   intl: ^0.16.1
   html: ^0.14.0+3
   http: ^0.12.0+4
-  just_audio:
-    git:
-      url: https://github.com/Jei/just_audio
-      ref: exoplayer-errors-stream
+  just_audio: ^0.2.2
   marquee_widget:
     git:
       url: https://github.com/Jei/marquee_widget
