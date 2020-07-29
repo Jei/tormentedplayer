@@ -35,7 +35,7 @@ dependencies:
       url: https://github.com/Jei/marquee_widget
       ref: dispose-timer
   package_info: ^0.4.0+17
-  palette_generator: ^0.2.2
+  palette_generator: ^0.2.3
   preferences: ^5.2.0
   provider: ^4.0.4
   rxdart: ^0.24.0
