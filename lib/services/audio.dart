@@ -223,6 +223,22 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   @override
+  void onClick(MediaButton button) {
+    // TODO rethink play/pause/stop logic
+    if (button != MediaButton.media) return;
+
+    switch(_audioPlayer.playbackState) {
+      case AudioPlaybackState.playing:
+        _audioPlayer.pause();
+        break;
+      case AudioPlaybackState.paused:
+        _audioPlayer.play();
+        break;
+      default:
+    }
+  }
+
+  @override
   void onAudioFocusLost(AudioInterruption interruption) {
     // TODO handle interruption depending on its type
     onPause();
