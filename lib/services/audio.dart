@@ -242,4 +242,11 @@ class AudioPlayerTask extends BackgroundAudioTask {
     // TODO handle interruption depending on its type
     onPause();
   }
+
+  @override
+  void onTaskRemoved() {
+    if (!AudioServiceBackground.state.playing) {
+      onStop();
+    }
+  }
 }
