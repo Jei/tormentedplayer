@@ -53,6 +53,7 @@ class Radio {
       album: (item?.album ?? '').isEmpty ? null : item.album,
       image: (item?.artUri ?? '').isEmpty ? null : item.artUri);
 
+  // Starts the audio service or resumes audio playback
   void start() {
     RadioPlaybackState currentState =
         _audioToRadioPlaybackState(_audio.playbackState);
@@ -71,6 +72,10 @@ class Radio {
     }
   }
 
+  // Pauses audio playback
+  void pause() => _audio.pause();
+
+  // Stops audio playback and the audio service
   void stop() => _audio.stop();
 
   bool get connected => _audio.connected;

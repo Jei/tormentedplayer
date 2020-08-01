@@ -117,11 +117,13 @@ class RadioBloc {
 
   List<HistoryItem> get history => _historySubject.value;
 
-  startRadio() => _radio.start();
+  void startRadio() => _radio.start();
 
-  stopRadio() => _radio.stop();
+  void stopRadio() => _radio.stop();
 
-  dispose() {
+  void pauseRadio() => _radio.pause();
+
+  void dispose() {
     _apiTrackSubject.close();
     _trackSubject.close();
     _historySubject.close();

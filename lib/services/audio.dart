@@ -40,6 +40,8 @@ class AudioClient {
 
   Future<void> stop() => AudioService.stop();
 
+  Future<void> pause() => AudioService.pause();
+
   bool get connected => AudioService.connected;
 
   PlaybackState get playbackState => AudioService.playbackState;
@@ -59,7 +61,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
   StreamSubscription<AudioPlaybackEvent> _eventSubscription;
   StreamSubscription<MediaItem> _mediaItemSubscription;
   final String _url = 'http://stream2.mpegradio.com:8070/tormented.mp3';
-  Completer _completer = Completer();
 
   AudioProcessingState _stateToAudioProcessingState(AudioPlaybackState state) {
     switch (state) {
@@ -114,7 +115,6 @@ class AudioPlayerTask extends BackgroundAudioTask {
     _setState(state, false);
     _eventSubscription.cancel();
     _mediaItemSubscription.cancel();
-    _completer.complete();
   }
 
   // Handler for errors thrown by AudioPlayer.setUrl() or during playback
@@ -176,6 +176,7 @@ class AudioPlayerTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
+    // FIXME if the app is paused while onStart is running, the function never finishes and the audio service never starts completely
     // Subscribe to AudioPlayer events
     // Playback state events
     _eventSubscription = _audioPlayer.playbackEventStream.listen(
@@ -201,13 +202,12 @@ class AudioPlayerTask extends BackgroundAudioTask {
     } catch (err) {
       _handlePlayerError('Error while connecting to the URL', err);
     }
-
-    // This future is completed when the player is stopped or throws error
-    await _completer.future;
   }
 
   @override
-  void onPlay() {
+  void onPlay() async {
+    // Seek the end of the stream instead of playing the buffered audio
+    await _audioPlayer.seek(null);
     _audioPlayer.play();
   }
 
@@ -223,8 +223,30 @@ class AudioPlayerTask extends BackgroundAudioTask {
   }
 
   @override
+  void onClick(MediaButton button) {
+    if (button != MediaButton.media) return;
+
+    switch (_audioPlayer.playbackState) {
+      case AudioPlaybackState.playing:
+        onPause();
+        break;
+      case AudioPlaybackState.paused:
+        onPlay();
+        break;
+      default:
+    }
+  }
+
+  @override
   void onAudioFocusLost(AudioInterruption interruption) {
     // TODO handle interruption depending on its type
     onPause();
+  }
+
+  @override
+  void onTaskRemoved() {
+    if (!AudioServiceBackground.state.playing) {
+      onStop();
+    }
   }
 }
