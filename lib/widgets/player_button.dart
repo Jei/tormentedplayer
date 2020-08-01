@@ -55,7 +55,7 @@ class PlayerButton extends StatelessWidget {
                   onTap: () {
                     if (isLoading) return;
 
-                    isPlaying ? _bloc.stopRadio() : _bloc.startRadio();
+                    isPlaying ? _bloc.pauseRadio() : _bloc.startRadio();
                   },
                 );
               }),
