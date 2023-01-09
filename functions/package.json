@@ -18,8 +18,8 @@
     "@types/he": "^1.1.1",
     "@types/request-promise": "^4.1.46",
     "express": "^4.17.1",
-    "firebase-admin": "^8.9.0",
-    "firebase-functions": "^3.3.0",
+    "firebase-admin": "^11.4.1",
+    "firebase-functions": "^3.24.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.5"
   },
